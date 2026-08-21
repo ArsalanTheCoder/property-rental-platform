@@ -1,5 +1,6 @@
 const ViewingRequest = require("../models/ViewingRequest");
 const Property = require("../models/Property");
+const Favorite = require("../models/Favorite");
 const aiService = require("./ai.service");
 const ApiError = require("../utils/ApiError");
 
@@ -27,6 +28,12 @@ class TenantViewingService {
       );
     }
 
+    // Compute favoritesCount and priorViewingCount from existing data
+    const [favoritesCount, priorViewingCount] = await Promise.all([
+      Favorite.countDocuments({ userId: user._id }),
+      ViewingRequest.countDocuments({ userId: user._id, propertyId: property._id }),
+    ]);
+
     // Automatically evaluate AI Lead Score on submission
     const leadScore = await aiService.calculateLeadScore({
       tenantName: user.name,
@@ -35,6 +42,8 @@ class TenantViewingService {
       viewingDate: date,
       viewingTime: time,
       propertyPrice: property.price,
+      favoritesCount,
+      priorViewingCount,
     });
 
     const viewing = await ViewingRequest.create({

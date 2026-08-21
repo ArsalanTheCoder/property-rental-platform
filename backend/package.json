@@ -16,6 +16,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@property-rental/ai": "file:../ai",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.1",
     "cookie-parser": "^1.4.7",
@@ -24,7 +25,6 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
     "express-validator": "^7.3.2",
-    "groq-sdk": "^1.5.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.3",
     "multer": "^2.2.0",

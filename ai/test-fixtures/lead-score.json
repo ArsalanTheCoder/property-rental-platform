@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "purpose": "Golden fixtures for the lead-scoring boundary used to support Backend-owner T032/T033. Inputs follow the spec §7.4 LeadContext (agreed D2 signals; no raw PII in expected output; phone numbers deliberately absent). expectedOutput is the EXACT deterministic result of createAiService({ AI_MODE: 'mock' }).scoreLead(context). Scoring computes and returns only — no persistence. Backend owner: use these as expected bodies when exercising scoreLead (compute-on-demand fallback) in supertest/integration tests running in AI_MODE=mock."
+  },
+  "cases": [
+    {
+      "name": "empty-context",
+      "context": {},
+      "expectedOutput": {
+        "score": 20
+      }
+    },
+    {
+      "name": "rich-interested-lead",
+      "context": {
+        "userName": "Ali",
+        "message": "I am very interested in this apartment and would like to schedule a visit.",
+        "date": "2026-08-20",
+        "time": "17:00",
+        "favoritesCount": 4,
+        "priorViewingCount": 2
+      },
+      "expectedOutput": {
+        "score": 100
+      }
+    },
+    {
+      "name": "moderate-lead",
+      "context": {
+        "message": "Interested in viewing.",
+        "favoritesCount": 3,
+        "priorViewingCount": 1
+      },
+      "expectedOutput": {
+        "score": 60
+      }
+    },
+    {
+      "name": "date-only",
+      "context": {
+        "date": "2026-08-21"
+      },
+      "expectedOutput": {
+        "score": 30
+      }
+    },
+    {
+      "name": "high-activity-clamped",
+      "context": {
+        "favoritesCount": 12,
+        "priorViewingCount": 6
+      },
+      "expectedOutput": {
+        "score": 60
+      }
+    }
+  ]
+}

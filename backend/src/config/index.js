@@ -48,6 +48,7 @@ const config = {
       : undefined,
   },
   ai: {
+    mode: process.env.AI_MODE || "mock",
     apiKey: process.env.AI_API_KEY,
   },
 };

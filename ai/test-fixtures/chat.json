@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "purpose": "Golden fixtures for the chatbot boundary used to support Backend-owner T031/T033. Inputs follow the spec §7.2 flow: a property context (shared README PropertyContext fields) plus a tenant question. expectedOutput is the EXACT deterministic result of createAiService({ AI_MODE: 'mock' }).answerQuestion(property, question). Chat is stateless: no conversation memory, no database writes. Backend owner: use these as expected bodies in supertest assertions for POST /api/ai/chat running in AI_MODE=mock."
+  },
+  "cases": [
+    {
+      "name": "price-question",
+      "property": {
+        "propertyId": "prop_123",
+        "title": "Modern 2-Bed Apartment in DHA Karachi",
+        "description": "A bright, furnished 2-bedroom apartment.",
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "DHA Karachi",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "availability": true,
+        "status": "published"
+      },
+      "question": "What is the monthly rent?",
+      "expectedOutput": {
+        "answer": "This property is listed at Rs. 50,000."
+      }
+    },
+    {
+      "name": "bedrooms-question",
+      "property": {
+        "propertyId": "prop_123",
+        "title": "Modern 2-Bed Apartment in DHA Karachi",
+        "description": "A bright, furnished 2-bedroom apartment.",
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "DHA Karachi",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "availability": true,
+        "status": "published"
+      },
+      "question": "How many bedrooms does this property have?",
+      "expectedOutput": {
+        "answer": "This property has 2 bedrooms."
+      }
+    },
+    {
+      "name": "furnished-question",
+      "property": {
+        "propertyId": "prop_123",
+        "title": "Modern 2-Bed Apartment in DHA Karachi",
+        "description": "A bright, furnished 2-bedroom apartment.",
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "DHA Karachi",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "availability": true,
+        "status": "published"
+      },
+      "question": "Is the property furnished?",
+      "expectedOutput": {
+        "answer": "Yes, this property is fully furnished."
+      }
+    },
+    {
+      "name": "location-question",
+      "property": {
+        "propertyId": "prop_123",
+        "title": "Modern 2-Bed Apartment in DHA Karachi",
+        "description": "A bright, furnished 2-bedroom apartment.",
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "DHA Karachi",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "availability": true,
+        "status": "published"
+      },
+      "question": "Where is this located?",
+      "expectedOutput": {
+        "answer": "This property is located in DHA Karachi."
+      }
+    },
+    {
+      "name": "property-type-question",
+      "property": {
+        "propertyId": "prop_123",
+        "title": "Modern 2-Bed Apartment in DHA Karachi",
+        "description": "A bright, furnished 2-bedroom apartment.",
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "DHA Karachi",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "availability": true,
+        "status": "published"
+      },
+      "question": "What type of property is this?",
+      "expectedOutput": {
+        "answer": "This is an apartment property."
+      }
+    },
+    {
+      "name": "unanswerable-question",
+      "property": {
+        "propertyId": "prop_123",
+        "title": "Modern 2-Bed Apartment in DHA Karachi",
+        "description": "A bright, furnished 2-bedroom apartment.",
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "DHA Karachi",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "availability": true,
+        "status": "published"
+      },
+      "question": "Is the property pet friendly?",
+      "expectedOutput": {
+        "answer": "Based on the listing information, please review the property details for more information."
+      }
+    }
+  ]
+}

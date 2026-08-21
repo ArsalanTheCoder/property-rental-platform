@@ -1,11 +1,37 @@
 const ApiError = require("../utils/ApiError");
 const config = require("../config");
 
+// Map AI package error codes to HTTP status codes per INTEGRATION.md §6
+const AI_ERROR_HTTP_MAP = {
+  CONFIG_MISSING: 500,
+  PROVIDER_AUTH: 502,
+  PROVIDER_TIMEOUT: 502,
+  PROVIDER_UNAVAILABLE: 502,
+  INVALID_OUTPUT: 502,
+};
+
+const AI_ERROR_CLIENT_MESSAGES = {
+  CONFIG_MISSING: "AI service is not configured",
+  PROVIDER_AUTH: "AI service unavailable, try again",
+  PROVIDER_TIMEOUT: "AI service unavailable, try again",
+  PROVIDER_UNAVAILABLE: "AI service unavailable, try again",
+  INVALID_OUTPUT: "Could not generate content",
+};
+
 /**
  * Centralized Express Error Handling Middleware.
  * Catches all operational and unhandled errors and formats standard JSON envelope.
  */
 const errorHandler = (err, req, res, next) => {
+  // Handle @property-rental/ai AiError (code-based)
+  if (err && err.name === "AiError" && err.code) {
+    const statusCode = AI_ERROR_HTTP_MAP[err.code] || 500;
+    const message =
+      AI_ERROR_CLIENT_MESSAGES[err.code] || "AI service error";
+    console.error(`[AI ERROR] code=${err.code}, status=${statusCode}`);
+    return res.status(statusCode).json({ statusCode, success: false, message });
+  }
+
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
   let errors = err.errors || [];

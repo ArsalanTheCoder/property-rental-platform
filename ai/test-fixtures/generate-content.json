@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "purpose": "Golden fixtures for the generate-content boundary used by T030. Inputs mirror the spec §7.1 request body (shared README property fields). expectedOutput is the EXACT deterministic result of createAiService({ AI_MODE: 'mock' }).generateContent(input). Backend owner: use these as expected bodies in supertest assertions for POST /api/admin/ai/generate-content running in AI_MODE=mock."
+  },
+  "cases": [
+    {
+      "name": "full-spec-7-1-body",
+      "input": {
+        "propertyType": "apartment",
+        "price": 50000,
+        "location": "Karachi, DHA",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "amenities": ["parking", "wifi"],
+        "furnished": true,
+        "notes": "Near main boulevard, quiet street"
+      },
+      "expectedOutput": {
+        "title": "2-Bedroom Apartment in Karachi, DHA",
+        "description": "This property offers 2 bedrooms and 2 bathrooms. This is an apartment rental. The rental price is Rs. 50,000. The property is fully furnished. Amenities include parking, wifi. Near main boulevard, quiet street"
+      }
+    },
+    {
+      "name": "unfurnished-house-with-notes",
+      "input": {
+        "propertyType": "house",
+        "price": 80000,
+        "location": "Lahore, Gulberg",
+        "bedrooms": 4,
+        "bathrooms": 3,
+        "furnished": false,
+        "notes": "Gated community with a garden."
+      },
+      "expectedOutput": {
+        "title": "4-Bedroom House in Lahore, Gulberg",
+        "description": "This property offers 4 bedrooms and 3 bathrooms. This is a house rental. The rental price is Rs. 80,000. The property is unfurnished. Gated community with a garden."
+      }
+    },
+    {
+      "name": "location-only-no-descriptor",
+      "input": {
+        "location": "DHA Karachi"
+      },
+      "expectedOutput": {
+        "title": "Rental Property in DHA Karachi",
+        "description": "A comfortable rental property ready for you."
+      }
+    }
+  ]
+}
