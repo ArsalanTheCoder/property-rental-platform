@@ -32,6 +32,7 @@ shapes onto these interfaces. No permanent contract is invented here.
 | login(emailOrUsername, password) | Promise<{ token, admin }> | PENDING (dependency #1) |
 | logout() | Promise<void> | PENDING |
 | getSession() | Promise<{ token, admin } \| null> | PENDING |
+| changePassword(currentPassword, newPassword) | Promise<{ success }> | PENDING (dependency #1) |
 
 ## PropertyService
 
@@ -42,6 +43,7 @@ shapes onto these interfaces. No permanent contract is invented here.
 | create(data) | Promise<Property> | PENDING |
 | update(propertyId, data) | Promise<Property> | PENDING |
 | remove(propertyId) | Promise<void> | PENDING |
+| review(propertyId) | Promise<Property> | PENDING (dependency #2) |
 | approve(propertyId) | Promise<Property> | PENDING (dependency #2) |
 | publish(propertyId) | Promise<Property> | PENDING (dependency #2) |
 
