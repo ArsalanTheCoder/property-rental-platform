@@ -128,34 +128,19 @@ export const mockApi = {
     return undefined
   },
 
-  async reviewProperty(propertyId) {
+  // Config-driven status transition (mirrors PATCH /admin/properties/:id/status):
+  // only transitions allowed by propertyWorkflow for the current status succeed.
+  async updatePropertyStatus(propertyId, status) {
     await delay()
-    return this.applyWorkflowAction(propertyId, 'Review')
-  },
-
-  async approveProperty(propertyId) {
-    await delay()
-    return this.applyWorkflowAction(propertyId, 'Approve')
-  },
-
-  async publishProperty(propertyId) {
-    await delay()
-    return this.applyWorkflowAction(propertyId, 'Publish')
-  },
-
-  applyWorkflowAction(propertyId, actionName) {
     const index = db.properties.findIndex((p) => p.propertyId === propertyId)
     if (index === -1) {
       throw new ApiError('Property not found.', 404)
     }
     const property = db.properties[index]
-    const action = propertyWorkflow.actions.find((a) => a.action === actionName)
-    if (!action) {
-      throw new ApiError(`The "${actionName}" action is not supported.`, 400)
-    }
-    if (!action.allowedFrom.includes(property.status)) {
+    const action = propertyWorkflow.actions.find((a) => a.resultStatus === status)
+    if (!action || !action.allowedFrom.includes(property.status)) {
       throw new ApiError(
-        `Cannot ${actionName.toLowerCase()} a property in status "${property.status}".`,
+        `Cannot change property status to "${status}" from "${property.status}".`,
         403
       )
     }
@@ -172,7 +157,7 @@ export const mockApi = {
       totalUsers: db.users.length,
       pendingInquiries: db.inquiries.filter((i) => i.status === 'new').length,
       pendingViewingRequests: db.viewingRequests.filter(
-        (v) => v.status === 'Pending' || v.status === 'Confirmed'
+        (v) => v.status === 'pending' || v.status === 'confirmed'
       ).length,
     })
   },
@@ -223,6 +208,28 @@ export const mockApi = {
     return clone(db.viewingRequests[index])
   },
 
+  // DEVELOPMENT-ONLY: deterministic pseudo lead score derived from the seeded
+  // request (message length + status). Never production data — the real score
+  // is computed by the backend AI service via GET /admin/viewings/:id/lead-score.
+  async getLeadScore(viewingId) {
+    await delay()
+    const request = db.viewingRequests.find((v) => v.viewingId === viewingId)
+    if (!request) {
+      throw new ApiError('Viewing request not found.', 404)
+    }
+    const statusBonus = { pending: 10, confirmed: 25, completed: 30 }[request.status] ?? 0
+    const score = Math.min(99, Math.round(request.message.length / 3) + statusBonus + 20)
+    return {
+      viewingId: request.viewingId,
+      leadScore: {
+        score,
+        reasoning:
+          'Development-only deterministic score from the mock. Real scores come from the backend AI service.',
+        evaluatedAt: new Date().toISOString(),
+      },
+    }
+  },
+
   async listUsers(params = {}) {
     await delay()
     const search = String(params.search ?? '').trim().toLowerCase()
@@ -243,6 +250,22 @@ export const mockApi = {
     const user = db.users.find((u) => u.userId === userId)
     if (!user) {
       throw new ApiError('User not found.', 404)
+    }
+    return clone(user)
+  },
+
+  // Mirrors PATCH /admin/users/:id/status ({ isBlocked?, isActive? }).
+  async updateUserStatus(userId, data = {}) {
+    await delay()
+    const user = db.users.find((u) => u.userId === userId)
+    if (!user) {
+      throw new ApiError('User not found.', 404)
+    }
+    if (data.isBlocked !== undefined) {
+      user.isBlocked = Boolean(data.isBlocked)
+    }
+    if (data.isActive !== undefined) {
+      user.isActive = Boolean(data.isActive)
     }
     return clone(user)
   },

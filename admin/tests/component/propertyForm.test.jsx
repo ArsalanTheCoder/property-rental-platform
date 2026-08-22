@@ -35,7 +35,7 @@ async function fillValidForm(user) {
     screen.getByLabelText(/^Description/),
     'A bright and spacious loft with high ceilings and a fully equipped kitchen in the city center.'
   )
-  await user.selectOptions(screen.getByLabelText(/^Property type/), 'apartment')
+  await user.selectOptions(screen.getByLabelText(/^Property type/), 'Apartment')
   await user.type(screen.getByLabelText(/^Location/), 'Art District 5')
   await user.type(screen.getByLabelText(/^Price/), '1500')
   await user.type(screen.getByLabelText(/^Bedrooms/), '2')
@@ -69,7 +69,7 @@ describe('PropertyFormPage', () => {
     await user.type(screen.getByLabelText(/^Location/), 'Somewhere')
     await user.type(screen.getByLabelText(/^Bedrooms/), '2')
     await user.type(screen.getByLabelText(/^Bathrooms/), '1')
-    await user.selectOptions(screen.getByLabelText(/^Property type/), 'house')
+    await user.selectOptions(screen.getByLabelText(/^Property type/), 'House')
     await user.selectOptions(screen.getByLabelText(/^Availability/), 'available')
     await user.type(screen.getByLabelText(/^Image URLs/), 'not-a-valid-url')
     await user.click(screen.getByRole('button', { name: /create property/i }))
@@ -82,7 +82,7 @@ describe('PropertyFormPage', () => {
   })
 
   it('submits valid data and navigates to the created property details', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     propertyService.create.mockResolvedValue({
       propertyId: 'prop-010',
       title: 'Modern Loft in the Arts District',
@@ -102,14 +102,14 @@ describe('PropertyFormPage', () => {
         bathrooms: 1,
         amenities: ['wifi', 'parking'],
         furnished: false,
-        status: 'new',
+        status: 'draft',
         availability: 'available',
       })
     )
   })
 
   it('shows an API error banner when creation fails', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     propertyService.create.mockRejectedValue(new Error('The server is unavailable.'))
     renderCreateForm()
 
@@ -121,7 +121,7 @@ describe('PropertyFormPage', () => {
   })
 
   it('includes locally selected images in the submitted payload as session blob URLs', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     URL.createObjectURL = vi.fn((file) => `blob:mock-${file.name}`)
     URL.revokeObjectURL = vi.fn()
     propertyService.create.mockResolvedValue({

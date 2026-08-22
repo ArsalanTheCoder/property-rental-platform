@@ -5,15 +5,11 @@ import { useToast } from '../../context/ToastContext.jsx'
 import { Button } from '../ui/Button.jsx'
 import { Icon } from '../ui/Icon.jsx'
 
-// Presentation glue: maps a config action label to its service call. The
-// transition RULES live exclusively in propertyWorkflow.js (FR-022, FR-023) —
+// Presentation glue: maps a config action to the real backend status
+// transition (PATCH /admin/properties/:id/status via propertyService.updateStatus).
+// The transition RULES live exclusively in propertyWorkflow.js (FR-022, FR-023) —
 // this component only renders the actions allowed for the current status and
 // surfaces the backend's response, never fabricating success (FR-022 scenario 3).
-const ACTION_METHOD = {
-  Review: propertyService.review,
-  Approve: propertyService.approve,
-  Publish: propertyService.publish,
-}
 
 // The canonical workflow path derived entirely from the config, so no status
 // names or ordering are hardcoded here: initialStatus → result of each action.
@@ -70,7 +66,7 @@ export function WorkflowActions({ property, onChanged, showStepper = true }) {
   async function run(action) {
     setPending(action.action)
     try {
-      const updated = await ACTION_METHOD[action.action](property.propertyId)
+      const updated = await propertyService.updateStatus(property.propertyId, action.resultStatus)
       toast.success(`Property successfully ${action.resultStatus}.`)
       onChanged?.(updated)
     } catch (err) {

@@ -1,43 +1,46 @@
 // Central endpoint constants.
-// INTEGRATION: backend endpoint paths PENDING (owner: Mohammad Arsalan).
-// These values are contract placeholders — replace values when the backend
-// contract lands, never rename the domain interfaces they back.
+// Mirrors the real backend contract (backend/src/routes/admin.routes.js):
+// every admin resource lives under /admin, mounted at `${API_BASE}/v1`.
+// Paths without a real backend route are marked explicitly and are never
+// called in real-API mode.
 
 export const endpoints = {
   auth: {
+    // Real backend routes exist for login/logout/me (backend auth.routes.js),
+    // but the full real-mode auth flow (httpOnly-cookie token handoff into
+    // sessionStore) is a separate integration dependency. These paths back the
+    // mock/dev flow until that contract lands.
     login: '/auth/login',
     logout: '/auth/logout',
-    session: '/auth/session',
-    // PENDING: real password-change endpoint (owner: Mohammad Arsalan, dep #1)
+    session: '/auth/me',
+    // PENDING: the backend has no password-change route yet (mock only).
     changePassword: '/auth/change-password',
   },
   properties: {
-    list: '/properties',
-    create: '/properties',
-    get: (propertyId) => `/properties/${propertyId}`,
-    update: (propertyId) => `/properties/${propertyId}`,
-    remove: (propertyId) => `/properties/${propertyId}`,
-    review: (propertyId) => `/properties/${propertyId}/review`,
-    approve: (propertyId) => `/properties/${propertyId}/approve`,
-    publish: (propertyId) => `/properties/${propertyId}/publish`,
+    list: '/admin/properties',
+    create: '/admin/properties',
+    get: (propertyId) => `/admin/properties/${propertyId}`,
+    update: (propertyId) => `/admin/properties/${propertyId}`,
+    remove: (propertyId) => `/admin/properties/${propertyId}`,
+    updateStatus: (propertyId) => `/admin/properties/${propertyId}/status`,
+    uploadImages: (propertyId) => `/admin/properties/${propertyId}/images`,
+    deleteImage: (propertyId) => `/admin/properties/${propertyId}/images`,
   },
   dashboard: {
-    summary: '/dashboard/summary',
-  },
-  inquiries: {
-    list: '/inquiries',
-    get: (inquiryId) => `/inquiries/${inquiryId}`,
+    summary: '/admin/dashboard/stats',
   },
   viewingRequests: {
-    list: '/viewing-requests',
-    get: (viewingId) => `/viewing-requests/${viewingId}`,
-    updateStatus: (viewingId) => `/viewing-requests/${viewingId}/status`,
+    list: '/admin/viewings',
+    get: (viewingId) => `/admin/viewings/${viewingId}`,
+    updateStatus: (viewingId) => `/admin/viewings/${viewingId}/status`,
+    leadScore: (viewingId) => `/admin/viewings/${viewingId}/lead-score`,
   },
   users: {
-    list: '/users',
-    get: (userId) => `/users/${userId}`,
+    list: '/admin/users',
+    get: (userId) => `/admin/users/${userId}`,
+    updateStatus: (userId) => `/admin/users/${userId}/status`,
   },
   ai: {
-    generatePropertyContent: '/ai/properties/content',
+    generateDescription: '/admin/ai/generate-description',
   },
 }

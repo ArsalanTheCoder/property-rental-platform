@@ -400,8 +400,8 @@ function PropertyForm({ isEdit, propertyId, initialValues }) {
                 value={values.status}
                 onChange={(e) => setValue('status', e.target.value)}
                 onBlur={() => onBlur('status')}
-                error={errors.status}
-                hint="Usual status changes happen via the Review → Approve → Publish workflow on the details page."
+                 error={errors.status}
+                 hint="Usual status changes happen via the Publish / Unpublish workflow on the details page."
               >
                 {propertyWorkflow.statuses.map((s) => (
                   <option key={s} value={s}>

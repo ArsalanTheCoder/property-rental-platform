@@ -38,9 +38,13 @@ http.interceptors.response.use(
       window.dispatchEvent(new CustomEvent('auth:expired'))
     }
 
-    return Promise.reject(
-      new ApiError(message, status, error?.response?.data?.fields ?? null)
-    )
+    // Backend validation errors arrive as an `errors` array
+    // (backend/src/middleware/error.middleware.js); keep reading `fields`
+    // for compatibility with older mock/dev payloads.
+    const fields =
+      error?.response?.data?.errors ?? error?.response?.data?.fields ?? null
+
+    return Promise.reject(new ApiError(message, status, fields))
   }
 )
 

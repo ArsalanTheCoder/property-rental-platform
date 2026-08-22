@@ -1,19 +1,24 @@
-// Development-only configurable workflow and enumerations for properties.
-// INTEGRATION (owner: Mohammad Arsalan, spec dependencies #2/#3/#6): the exact
-// status/availability/property-type values and the Review → Approve → Publish
-// transition rules will follow the backend contract. Replace these values when
-// that contract lands; components and mocks read them from this config and
+// Property workflow and enumerations — mirrors the real backend contract:
+// statuses/types are enforced by backend/src/validators/property.validator.js
+// and backend/src/models/Property.js (draft | pending | published |
+// unpublished; Apartment | House | Villa | Studio | Commercial | Penthouse).
+// Availability is a boolean server-side; the UI represents it as
+// available/rented. Components, services, and mocks read this config and
 // never hardcode status names or transition rules (FR-022, FR-023).
 
 export const propertyWorkflow = {
-  initialStatus: 'new',
-  statuses: ['new', 'submitted', 'reviewed', 'approved', 'published'],
-  availability: ['available', 'rented', 'maintenance'],
-  propertyTypes: ['house', 'apartment', 'studio'],
+  initialStatus: 'draft',
+  statuses: ['draft', 'pending', 'published', 'unpublished'],
+  availability: ['available', 'rented'],
+  propertyTypes: ['Apartment', 'House', 'Villa', 'Studio', 'Commercial', 'Penthouse'],
+  // Status transitions go through PATCH /admin/properties/:id/status.
   actions: [
-    { action: 'Review', allowedFrom: ['new', 'submitted'], resultStatus: 'reviewed' },
-    { action: 'Approve', allowedFrom: ['reviewed'], resultStatus: 'approved' },
-    { action: 'Publish', allowedFrom: ['approved'], resultStatus: 'published' },
+    {
+      action: 'Publish',
+      allowedFrom: ['draft', 'pending', 'unpublished'],
+      resultStatus: 'published',
+    },
+    { action: 'Unpublish', allowedFrom: ['published'], resultStatus: 'unpublished' },
   ],
 }
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import propertyService from '../../services/propertyService.js'
 import { useAsyncData } from '../../hooks/useAsyncData.js'
+import { propertyWorkflow } from '../../config/propertyWorkflow.js'
 import { formatPrice } from '../../utils/format.js'
 import { statusBadgeColor } from '../../utils/status.js'
 import { useToast } from '../../context/ToastContext.jsx'
@@ -187,7 +188,11 @@ export default function PropertyDetailPage() {
         <CardHeader
           icon="shield-check"
           title="Workflow"
-          extra={<span className="text-xs text-gray-500">Review → Approve → Publish</span>}
+          extra={
+            <span className="text-xs text-gray-500">
+              {propertyWorkflow.actions.map((action) => action.action).join(' / ')}
+            </span>
+          }
         />
         <div className="p-5">
           <WorkflowActions property={property} onChanged={reload} />

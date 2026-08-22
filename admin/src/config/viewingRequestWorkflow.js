@@ -1,17 +1,16 @@
-// Development-only configurable workflow for viewing request statuses.
-// INTEGRATION (owner: Mohammad Arsalan, spec dependency #2): the exact status
-// values and allowed transitions will follow the backend contract. Replace
-// these values when that contract lands; components and mocks read them from
-// this config and never hardcode status names or transition rules (FR-031,
-// FR-032).
+// Viewing request workflow — mirrors the real backend contract:
+// statuses are enforced by backend/src/validators/viewing.validator.js and
+// backend/src/models/ViewingRequest.js (pending | confirmed | rejected |
+// cancelled | completed). Components, services, and mocks read this config
+// and never hardcode status names or transition rules (FR-031, FR-032).
 
 export const viewingRequestWorkflow = {
-  statuses: ['Pending', 'Confirmed', 'Rejected', 'Cancelled', 'Completed'],
+  statuses: ['pending', 'confirmed', 'rejected', 'cancelled', 'completed'],
   actions: [
-    { action: 'Confirm', allowedFrom: ['Pending'], resultStatus: 'Confirmed' },
-    { action: 'Reject', allowedFrom: ['Pending'], resultStatus: 'Rejected' },
-    { action: 'Cancel', allowedFrom: ['Pending', 'Confirmed'], resultStatus: 'Cancelled' },
-    { action: 'Mark completed', allowedFrom: ['Confirmed'], resultStatus: 'Completed' },
+    { action: 'Confirm', allowedFrom: ['pending'], resultStatus: 'confirmed' },
+    { action: 'Reject', allowedFrom: ['pending'], resultStatus: 'rejected' },
+    { action: 'Cancel', allowedFrom: ['pending', 'confirmed'], resultStatus: 'cancelled' },
+    { action: 'Mark completed', allowedFrom: ['confirmed'], resultStatus: 'completed' },
   ],
 }
 

@@ -8,9 +8,12 @@ import propertyService from '../../src/services/propertyService.js'
 
 vi.mock('../../src/services/propertyService.js', () => ({
   default: {
-    review: vi.fn(),
-    approve: vi.fn(),
-    publish: vi.fn(),
+    list: vi.fn(),
+    get: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+    updateStatus: vi.fn(),
   },
 }))
 
@@ -25,7 +28,7 @@ function renderWorkflow(property, { onChanged = vi.fn() } = {}) {
 const baseProperty = {
   propertyId: 'prop-001',
   title: 'Sunny Apartment',
-  status: 'new',
+  status: 'draft',
 }
 
 describe('WorkflowActions', () => {
@@ -34,19 +37,18 @@ describe('WorkflowActions', () => {
   })
 
   it('renders exactly the actions the config allows for the current status', () => {
-    renderWorkflow({ ...baseProperty, status: 'new' })
-    const allowed = getAllowedActions('new')
-    expect(allowed.map((a) => a.action)).toEqual(['Review'])
-    expect(screen.getByRole('button', { name: 'Review' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument()
+    renderWorkflow({ ...baseProperty, status: 'draft' })
+    const allowed = getAllowedActions('draft')
+    expect(allowed.map((a) => a.action)).toEqual(['Publish'])
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Unpublish' })).not.toBeInTheDocument()
   })
 
   it('shows the config action for each status in the workflow', () => {
     const expectations = {
-      new: ['Review'],
-      reviewed: ['Approve'],
-      approved: ['Publish'],
+      draft: ['Publish'],
+      pending: ['Publish'],
+      published: ['Unpublish'],
     }
     Object.entries(expectations).forEach(([status, names]) => {
       const { unmount } = renderWorkflow({ ...baseProperty, status })
@@ -57,37 +59,44 @@ describe('WorkflowActions', () => {
     })
   })
 
-  it('shows a message instead of actions for terminal statuses', () => {
-    renderWorkflow({ ...baseProperty, status: 'published' })
-    expect(screen.getByText(/no further workflow actions/i)).toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  it('renders an action for every configured workflow status (never dead-ends)', () => {
+    propertyWorkflow.statuses.forEach((status) => {
+      const { unmount } = renderWorkflow({ ...baseProperty, status })
+      expect(screen.getAllByRole('button').length).toBeGreaterThan(0)
+      unmount()
+    })
   })
 
-  it('calls the config-driven service method and refreshes on success', async () => {
+  it('calls the config-driven status transition and refreshes on success', async () => {
     const user = userEvent.setup()
     const onChanged = vi.fn()
-    propertyService.review.mockResolvedValue({ ...baseProperty, status: 'reviewed' })
-    renderWorkflow({ ...baseProperty, status: 'new' }, { onChanged })
+    propertyService.updateStatus.mockResolvedValue({
+      propertyId: 'prop-001',
+      status: 'published',
+    })
+    renderWorkflow({ ...baseProperty, status: 'draft' }, { onChanged })
 
-    await user.click(screen.getByRole('button', { name: 'Review' }))
+    await user.click(screen.getByRole('button', { name: 'Publish' }))
 
-    expect(propertyService.review).toHaveBeenCalledWith('prop-001')
+    expect(propertyService.updateStatus).toHaveBeenCalledWith('prop-001', 'published')
     expect(onChanged).toHaveBeenCalledTimes(1)
-    expect(onChanged).toHaveBeenCalledWith(expect.objectContaining({ status: 'reviewed' }))
-    expect(await screen.findByText('Property successfully reviewed.')).toBeInTheDocument()
+    expect(onChanged).toHaveBeenCalledWith(expect.objectContaining({ status: 'published' }))
+    expect(await screen.findByText('Property successfully published.')).toBeInTheDocument()
   })
 
   it('surfaces the backend rejection without fabricating success', async () => {
     const user = userEvent.setup()
     const onChanged = vi.fn()
-    propertyService.review.mockRejectedValue(
-      new Error('Cannot Review a property in status "published".')
+    propertyService.updateStatus.mockRejectedValue(
+      new Error('Cannot change property status to "published" from "published".')
     )
-    renderWorkflow({ ...baseProperty, status: 'new' }, { onChanged })
+    renderWorkflow({ ...baseProperty, status: 'draft' }, { onChanged })
 
-    await user.click(screen.getByRole('button', { name: 'Review' }))
+    await user.click(screen.getByRole('button', { name: 'Publish' }))
 
-    expect(await screen.findByText('Cannot Review a property in status "published".')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Cannot change property status to "published" from "published".')
+    ).toBeInTheDocument()
     expect(onChanged).not.toHaveBeenCalled()
   })
 })

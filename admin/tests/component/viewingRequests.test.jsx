@@ -27,7 +27,7 @@ const mockRequests = [
     date: '2026-08-20',
     time: '10:00',
     message: 'Interested in a weekend viewing.',
-    status: 'Pending',
+    status: 'pending',
     createdAt: '2026-08-12T09:30:00Z',
   },
   {
@@ -39,7 +39,7 @@ const mockRequests = [
     date: '2026-08-15',
     time: '09:30',
     message: '',
-    status: 'Confirmed',
+    status: 'confirmed',
     createdAt: '2026-08-10T08:15:00Z',
   },
 ]
@@ -91,8 +91,8 @@ describe('ViewingRequestsPage', () => {
     expect(await screen.findByText('Alice Johnson')).toBeInTheDocument()
     expect(screen.getByText('Carol Chen')).toBeInTheDocument()
     expect(screen.getByText('Sunny Apartment')).toBeInTheDocument()
-    expect(screen.getAllByText('Pending')).toHaveLength(1)
-    expect(screen.getByText('Confirmed')).toBeInTheDocument()
+    expect(screen.getAllByText('pending')).toHaveLength(1)
+    expect(screen.getByText('confirmed')).toBeInTheDocument()
     expect(screen.getByText('10:00')).toBeInTheDocument()
   })
 
@@ -102,8 +102,8 @@ describe('ViewingRequestsPage', () => {
 
     await screen.findByText('Alice Johnson')
 
-    const pendingActions = getAllowedViewingActions('Pending').map((a) => a.action)
-    const confirmedActions = getAllowedViewingActions('Confirmed').map((a) => a.action)
+    const pendingActions = getAllowedViewingActions('pending').map((a) => a.action)
+    const confirmedActions = getAllowedViewingActions('confirmed').map((a) => a.action)
 
     // Actions unique to a single row.
     expect(pendingActions).toEqual(['Confirm', 'Reject', 'Cancel'])
@@ -123,22 +123,22 @@ describe('ViewingRequestsPage', () => {
     viewingRequestService.list.mockResolvedValue(mockRequests)
     viewingRequestService.updateStatus.mockResolvedValue({
       ...mockRequests[0],
-      status: 'Confirmed',
+      status: 'confirmed',
     })
     renderList()
 
     await screen.findByText('Alice Johnson')
     await user.click(screen.getByRole('button', { name: 'Confirm' }))
 
-    expect(viewingRequestService.updateStatus).toHaveBeenCalledWith('view-001', 'Confirmed')
-    expect(await screen.findByText('Viewing request status updated to Confirmed.')).toBeInTheDocument()
+    expect(viewingRequestService.updateStatus).toHaveBeenCalledWith('view-001', 'confirmed')
+    expect(await screen.findByText('Viewing request status updated to confirmed.')).toBeInTheDocument()
   })
 
   it('surfaces the backend rejection for a forbidden transition without fabricating success', async () => {
     const user = userEvent.setup()
     viewingRequestService.list.mockResolvedValue(mockRequests)
     viewingRequestService.updateStatus.mockRejectedValue(
-      new Error('Cannot change viewing request status to "Completed" from "Pending".')
+      new Error('Cannot change viewing request status to "completed" from "pending".')
     )
     renderList()
 
@@ -146,7 +146,7 @@ describe('ViewingRequestsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Confirm' }))
 
     expect(
-      await screen.findByText('Cannot change viewing request status to "Completed" from "Pending".')
+      await screen.findByText('Cannot change viewing request status to "completed" from "pending".')
     ).toBeInTheDocument()
   })
 
@@ -160,6 +160,6 @@ describe('ViewingRequestsPage', () => {
     expect(screen.getByText('+1 555 0101')).toBeInTheDocument()
     expect(screen.getByText('Sunny Apartment')).toBeInTheDocument()
     expect(screen.getByText('Interested in a weekend viewing.')).toBeInTheDocument()
-    expect(screen.getByText('Pending')).toBeInTheDocument()
+    expect(screen.getByText('pending')).toBeInTheDocument()
   })
 })

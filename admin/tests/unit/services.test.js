@@ -42,7 +42,7 @@ describe('propertyService (mock)', () => {
     const created = await propertyService.create({
       title: 'Fresh Listing',
       description: 'A newly created listing with a full description for the mock contract.',
-      propertyType: 'apartment',
+      propertyType: 'Apartment',
       price: 1000,
       location: 'Test Street 1',
       bedrooms: 1,
@@ -50,17 +50,17 @@ describe('propertyService (mock)', () => {
       availability: 'available',
     })
     expect(created.propertyId).toBeTruthy()
-    expect(created.status).toBe('new')
+    expect(created.status).toBe('draft')
 
     const loaded = await propertyService.get(created.propertyId)
     expect(loaded.title).toBe('Fresh Listing')
   })
 
-  it('walks the workflow and rejects a forbidden transition', async () => {
+  it('walks the status workflow and rejects a forbidden transition', async () => {
     const created = await propertyService.create({
       title: 'Workflow Listing',
       description: 'A listing used to verify workflow transitions against the mock.',
-      propertyType: 'house',
+      propertyType: 'House',
       price: 2000,
       location: 'Workflow Street',
       bedrooms: 3,
@@ -68,18 +68,16 @@ describe('propertyService (mock)', () => {
       availability: 'available',
     })
 
-    await propertyService.review(created.propertyId)
-    expect((await propertyService.get(created.propertyId)).status).toBe('reviewed')
-
-    await propertyService.approve(created.propertyId)
-    expect((await propertyService.get(created.propertyId)).status).toBe('approved')
-
-    await propertyService.publish(created.propertyId)
+    await propertyService.updateStatus(created.propertyId, 'published')
     expect((await propertyService.get(created.propertyId)).status).toBe('published')
 
-    // Publish from the terminal state is not allowed by the config → 403.
-    await expect(propertyService.publish(created.propertyId)).rejects.toThrow(
-      /Cannot publish a property in status "published"/
+    await propertyService.updateStatus(created.propertyId, 'unpublished')
+    expect((await propertyService.get(created.propertyId)).status).toBe('unpublished')
+
+    // Publishing again is allowed by the config; an unsupported transition
+    // target is rejected with 403 without fabricating success.
+    await expect(propertyService.updateStatus(created.propertyId, 'confirmed')).rejects.toThrow(
+      /Cannot change property status/
     )
   })
 
@@ -87,7 +85,7 @@ describe('propertyService (mock)', () => {
     const created = await propertyService.create({
       title: 'Crud Listing',
       description: 'A listing used to verify update and remove against the mock.',
-      propertyType: 'studio',
+      propertyType: 'Studio',
       price: 800,
       location: 'Crud Street',
       bedrooms: 0,
@@ -123,13 +121,21 @@ describe('viewingRequestService (mock)', () => {
   })
 
   it('updates a status and rejects a forbidden transition', async () => {
-    const updated = await viewingRequestService.updateStatus('view-001', 'Confirmed')
-    expect(updated.status).toBe('Confirmed')
+    const updated = await viewingRequestService.updateStatus('view-001', 'confirmed')
+    expect(updated.status).toBe('confirmed')
 
-    // Rejecting a Confirmed request is not allowed by the config → 403.
-    await expect(viewingRequestService.updateStatus('view-001', 'Rejected')).rejects.toThrow(
+    // Rejecting a confirmed request is not allowed by the config → 403.
+    await expect(viewingRequestService.updateStatus('view-001', 'rejected')).rejects.toThrow(
       /Cannot change viewing request status/
     )
+  })
+
+  it('returns a lead score for a viewing request', async () => {
+    const result = await viewingRequestService.getLeadScore('view-002')
+    expect(result.viewingId).toBe('view-002')
+    expect(result.leadScore.score).toBeGreaterThanOrEqual(0)
+    expect(result.leadScore.score).toBeLessThanOrEqual(100)
+    expect(typeof result.leadScore.reasoning).toBe('string')
   })
 })
 
@@ -148,6 +154,14 @@ describe('userService (mock)', () => {
     expect(user.userId).toBe('user-001')
     expect(user['authentication information'].verified).toBe(true)
     expect(user.favorites).toContain('prop-001')
+  })
+
+  it('updates the moderation status of a user', async () => {
+    const updated = await userService.updateStatus('user-002', { isBlocked: true })
+    expect(updated.isBlocked).toBe(true)
+
+    // Restore so other tests are unaffected.
+    await userService.updateStatus('user-002', { isBlocked: false })
   })
 })
 

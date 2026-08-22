@@ -14,9 +14,7 @@ vi.mock('../../src/services/propertyService.js', () => ({
     create: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
-    review: vi.fn(),
-    approve: vi.fn(),
-    publish: vi.fn(),
+    updateStatus: vi.fn(),
   },
 }))
 
@@ -24,14 +22,14 @@ const property = {
   propertyId: 'prop-001',
   title: 'Sunny Apartment',
   description: 'A bright two-bedroom apartment in the city center.',
-  propertyType: 'apartment',
+  propertyType: 'Apartment',
   price: 1500,
   location: 'Downtown',
   bedrooms: 2,
   bathrooms: 1,
   furnished: true,
   availability: 'available',
-  status: 'new',
+  status: 'draft',
   amenities: ['wifi'],
   images: [],
 }
