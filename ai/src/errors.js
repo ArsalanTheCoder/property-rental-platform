@@ -1,26 +1,70 @@
-'use strict';
+/**
+ * Custom error classes for AI package
+ * All errors have stable error codes for client handling
+ */
 
-const AI_ERROR_CODES = [
-  'CONFIG_MISSING',
-  'PROVIDER_AUTH',
-  'PROVIDER_TIMEOUT',
-  'PROVIDER_UNAVAILABLE',
-  'INVALID_OUTPUT',
-];
-
-class AiError extends Error {
-  constructor(code, message, options = {}) {
+class AIError extends Error {
+  constructor(message, code, statusCode = 500) {
     super(message);
-    this.name = 'AiError';
+    this.name = "AIError";
     this.code = code;
-    this.cause = options.cause;
-    this.providerStatus = options.providerStatus;
-    this.retryable = options.retryable === true;
+    this.statusCode = statusCode;
   }
 }
 
-function isAiError(err) {
-  return err instanceof AiError;
+class ValidationError extends AIError {
+  constructor(message, field = null) {
+    super(message, "VALIDATION_ERROR", 400);
+    this.name = "ValidationError";
+    this.field = field;
+  }
 }
 
-module.exports = { AiError, AI_ERROR_CODES, isAiError };
+class ProviderError extends AIError {
+  constructor(message, originalError = null) {
+    super(message, "PROVIDER_ERROR", 502);
+    this.name = "ProviderError";
+    this.originalError = originalError;
+  }
+}
+
+class RateLimitError extends AIError {
+  constructor(message = "Rate limit exceeded", retryAfter = null) {
+    super(message, "RATE_LIMIT_ERROR", 429);
+    this.name = "RateLimitError";
+    this.retryAfter = retryAfter;
+  }
+}
+
+class TimeoutError extends AIError {
+  constructor(message = "Request timed out", timeoutMs = null) {
+    super(message, "TIMEOUT_ERROR", 408);
+    this.name = "TimeoutError";
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+class ModelError extends AIError {
+  constructor(message = "Invalid model response", response = null) {
+    super(message, "MODEL_ERROR", 500);
+    this.name = "ModelError";
+    this.response = response;
+  }
+}
+
+class ConfigurationError extends AIError {
+  constructor(message) {
+    super(message, "CONFIGURATION_ERROR", 500);
+    this.name = "ConfigurationError";
+  }
+}
+
+module.exports = {
+  AIError,
+  ValidationError,
+  ProviderError,
+  RateLimitError,
+  TimeoutError,
+  ModelError,
+  ConfigurationError,
+};
