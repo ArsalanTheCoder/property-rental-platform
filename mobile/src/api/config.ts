@@ -1,11 +1,15 @@
+import { Platform } from "react-native";
+
 // Single place to point the app at the real backend.
-//
-// Set this to wherever the backend is actually running, including
-// the /api/v1 prefix, e.g. "https://your-backend.onrender.com/api/v1"
-// or "http://192.168.1.5:5000/api/v1" for a local server reachable
-// from a physical device on the same network (localhost will not
-// work from a phone, only from a simulator on the same machine).
-export const BASE_URL = "http://localhost:5000/api/v1";
+// On Android Emulator: use 10.0.2.2 or your machine IP.
+// On physical phone (Expo Go on Wi-Fi): use your machine Wi-Fi IP (192.168.100.6).
+// On iOS Simulator / Web: use localhost.
+const DEV_MACHINE_IP = "192.168.100.6";
+
+export const BASE_URL =
+  Platform.OS === "android"
+    ? `http://${DEV_MACHINE_IP}:5000/api/v1`
+    : `http://localhost:5000/api/v1`;
 
 export interface ApiEnvelope<T> {
   statusCode: number;
