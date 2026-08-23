@@ -40,7 +40,7 @@ Scan the QR code with Expo Go on Android, or the Camera app on iOS. Press `a` fo
 Open `src/api/config.ts` and set `BASE_URL` to wherever the backend is running, including the `/api/v1` prefix:
 
 ```ts
-export const BASE_URL = "http://192.168.1.5:5000/api/v1";
+export const BASE_URL = "http://your ip address/api/v1";
 ```
 
 Use your machine's local network IP, not `localhost`, when testing on a physical device with Expo Go, since the phone and the backend are different devices on the network. `localhost` only works when running in a simulator on the same machine as the backend, or in `npx expo start --web`.
@@ -105,7 +105,7 @@ This mobile app lives inside the shared team repository. Development work happen
 
 ## Author
 
-Farooque Sajjad Sodwae
+Farooque Sajjad 
 Software Engineer, QA Automation
 
 GitHub: https://github.com/Farooquekk
