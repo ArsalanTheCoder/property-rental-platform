@@ -157,7 +157,6 @@ status
 userId
 name
 email
-phone
 authentication
 favorites
 ```
@@ -177,7 +176,6 @@ viewingId
 userId
 propertyId
 userName
-userPhone
 date
 time
 message
@@ -876,8 +874,17 @@ Use `.env` files locally.
 Example:
 
 ```env
+PORT=5000
 MONGO_URI=
-JWT_SECRET=
+NODE_ENV=development
+
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+JWT_ACCESS_EXPIRY=15m
+JWT_REFRESH_EXPIRY=7d
+
+CLIENT_ORIGIN=http://localhost:3000
+
 AI_API_KEY=
 ```
 
@@ -889,13 +896,7 @@ Create an example file:
 .env.example
 ```
 
-Example:
-
-```env
-MONGO_URI=
-JWT_SECRET=
-AI_API_KEY=
-```
+This file documents the required variables without containing real values.
 
 ---
 
@@ -997,3 +998,6 @@ The complete flow of the platform is:
 **Raw Property Information → Admin → AI-assisted Content → Review → Publish → MongoDB → Backend → Web/Mobile → Tenant → AI Questions / Request Viewing**
 
 All developers must use the same **API structure, database structure, property fields, and project conventions** so that Web, Mobile, Admin, Backend, and AI work together as one system.
+
+
+
