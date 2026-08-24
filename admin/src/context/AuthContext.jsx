@@ -27,6 +27,19 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    // Restore session on app launch/reload if valid backend cookie exists
+    authService
+      .getSession()
+      .then((nextSession) => {
+        if (nextSession?.admin) {
+          sessionStore.setSession(nextSession)
+          setSession(nextSession)
+        }
+      })
+      .catch(() => {
+        // Not logged in or session expired
+      })
+
     const handleExpired = () => {
       sessionStore.clearSession()
       setSession(null)

@@ -4,11 +4,26 @@ import http from '../api/http.js'
 import { mockApi } from '../mocks/mockApi.js'
 
 const realService = {
-  login: (identifier, password) => http.post(endpoints.auth.login, { identifier, password }),
+  login: async (identifier, password) => {
+    const envelope = await http.post(endpoints.auth.login, {
+      email: identifier,
+      password,
+    })
+    const user = envelope?.data?.user
+    return {
+      token: 'session_active',
+      admin: user,
+    }
+  },
   logout: () => http.post(endpoints.auth.logout),
-  getSession: () => http.get(endpoints.auth.session),
-  // PENDING backend auth contract (owner: Mohammad Arsalan): request/response
-  // shape and endpoint will follow the backend; the UI only calls this boundary.
+  getSession: async () => {
+    const envelope = await http.get(endpoints.auth.session)
+    const user = envelope?.data?.user
+    return {
+      token: 'session_active',
+      admin: user,
+    }
+  },
   changePassword: (currentPassword, newPassword) =>
     http.post(endpoints.auth.changePassword, { currentPassword, newPassword }),
 }

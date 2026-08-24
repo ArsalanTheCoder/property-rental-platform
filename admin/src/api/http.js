@@ -14,6 +14,7 @@ export class ApiError extends Error {
 const http = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 15000,
+  withCredentials: true,
 })
 
 http.interceptors.request.use((config) => {
