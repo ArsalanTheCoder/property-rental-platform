@@ -45,7 +45,6 @@ const fieldValidators = {
   bathrooms: [validators.required, validators.integer],
   availability: validators.required,
   status: validators.required,
-  images: urlList,
 }
 
 function createInitialValues() {
@@ -59,31 +58,26 @@ function createInitialValues() {
     bathrooms: '',
     amenities: '',
     furnished: false,
-    images: '',
-    localImages: [],
+    existingImages: [],
     availability: '',
     status: propertyWorkflow.initialStatus,
   }
 }
 
 function toFormValues(property) {
-  const images = property.images ?? []
   return {
-    title: property.title,
-    description: property.description,
-    propertyType: property.propertyType,
+    title: property.title ?? '',
+    description: property.description ?? '',
+    propertyType: property.propertyType ?? '',
     price: property.price != null ? String(property.price) : '',
-    location: property.location,
+    location: property.location ?? '',
     bedrooms: property.bedrooms != null ? String(property.bedrooms) : '',
     bathrooms: property.bathrooms != null ? String(property.bathrooms) : '',
     amenities: property.amenities?.join(', ') ?? '',
     furnished: Boolean(property.furnished),
-    // Local (blob:) images are restored through the picker; the URL text field
-    // only ever holds web-hosted URLs.
-    images: images.filter((src) => !isBlobUrl(src)).join(', '),
-    localImages: images.filter(isBlobUrl),
-    availability: property.availability,
-    status: property.status,
+    existingImages: property.images ?? [],
+    availability: property.availability ?? '',
+    status: property.status ?? '',
   }
 }
 
@@ -132,7 +126,8 @@ function PropertyForm({ isEdit, propertyId, initialValues }) {
   const navigate = useNavigate()
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [localImages, setLocalImages] = useState(initialValues.localImages ?? [])
+  const [existingImages, setExistingImages] = useState(initialValues.existingImages ?? [])
+  const [newFiles, setNewFiles] = useState([])
   const { values, errors, setValue, onBlur, validateForm } = useForm(initialValues, fieldValidators)
 
   async function handleSubmit(event) {
@@ -140,6 +135,7 @@ function PropertyForm({ isEdit, propertyId, initialValues }) {
     if (!validateForm() || submitting) return
     setSubmitting(true)
     setFormError(null)
+
     const payload = {
       title: values.title.trim(),
       description: values.description.trim(),
@@ -150,22 +146,27 @@ function PropertyForm({ isEdit, propertyId, initialValues }) {
       bathrooms: Number(values.bathrooms),
       amenities: splitList(values.amenities),
       furnished: Boolean(values.furnished),
-      // URL-based images plus the locally selected (blob:) images kept in the
-      // current session by the mock — no upload endpoint is involved.
-      images: [...splitList(values.images), ...localImages],
+      images: existingImages,
       availability: values.availability,
       status: values.status,
     }
+
     try {
+      let targetId = propertyId
       if (isEdit) {
         await propertyService.update(propertyId, payload)
-        toast.success('Property updated successfully.')
-        navigate(`/properties/${propertyId}`, { replace: true })
       } else {
         const created = await propertyService.create(payload)
-        toast.success('Property created successfully.')
-        navigate(`/properties/${created.propertyId}`, { replace: true })
+        targetId = created.propertyId
       }
+
+      // Upload newly selected image files directly to Cloudinary
+      if (newFiles.length > 0) {
+        await propertyService.uploadImages(targetId, newFiles)
+      }
+
+      toast.success(isEdit ? 'Property updated successfully.' : 'Property created successfully.')
+      navigate(`/properties/${targetId}`, { replace: true })
     } catch (err) {
       setFormError(err?.message ?? 'Unable to save the property.')
       setSubmitting(false)
@@ -343,18 +344,14 @@ function PropertyForm({ isEdit, propertyId, initialValues }) {
           <SectionHeader
             icon="photo"
             title="Images"
-            description="Add photos from your computer or link web-hosted images."
+            description="Select property photos to upload to Cloudinary CDN."
           />
-          <div className="space-y-4 p-5">
-            <ImagePicker images={localImages} onChange={setLocalImages} />
-            <Input
-              id="images"
-              label="Image URLs (optional)"
-              value={values.images}
-              onChange={(e) => setValue('images', e.target.value)}
-              onBlur={() => onBlur('images')}
-              error={errors.images}
-              hint="Optional comma-separated URLs for web-hosted images. Local photos use Choose Images above and stay in the current session only."
+          <div className="p-5">
+            <ImagePicker
+              existingImages={existingImages}
+              onExistingImagesChange={setExistingImages}
+              newFiles={newFiles}
+              onNewFilesChange={setNewFiles}
             />
           </div>
         </Card>
