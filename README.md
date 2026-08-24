@@ -1,1003 +1,342 @@
-# Property Rental Platform
+# HAVEN — AI-Powered Property Rental Platform
 
-An AI-powered property rental platform where tenants can discover rental properties through a web application and mobile application. The platform also includes an Admin Panel for managing properties and AI features for property descriptions, property-specific questions, and lead scoring.
+[![Monorepo](https://img.shields.io/badge/Monorepo-Web%20%7C%20Mobile%20%7C%20Admin%20%7C%20Backend-blue?style=for-the-badge&logo=git)](https://github.com/ArsalanTheCoder/property-rental-platform)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![React Native](https://img.shields.io/badge/React_Native-Expo_SDK_51-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Groq AI](https://img.shields.io/badge/Groq_AI-Llama_3.3_70B-F55036?style=for-the-badge&logo=openai&logoColor=white)](https://groq.com/)
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-Image_CDN-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+
+An enterprise-grade, end-to-end AI-powered rental property discovery and management ecosystem. **HAVEN** connects prospective tenants with verified residential listings across Web and Mobile applications, powered by an internal Admin Panel, contextual Groq LLM intelligence, and centralized MongoDB architecture.
 
 ---
 
-## 1. Project Architecture
+## 📺 Video Demo & System Walkthrough
 
-The platform consists of:
+Experience the full live demonstration of the **Tenant Web App** and **Executive Admin Panel**:
 
-* **Web App** — React.js
-* **Mobile App** — React Native + Expo
-* **Admin Panel** — React.js
-* **Backend API** — Node.js + Express.js
-* **Database** — MongoDB
-* **AI** — AI/LLM API
+[![Watch Demo Video](https://img.shields.io/badge/▶_Watch_Full_Platform_Demo-Google_Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/161ccr9QtEjP6ZTp7gRSPt8I4uGepMaDl/view?usp=sharing)
 
-### Architecture Diagram
+> 🔗 **Direct Google Drive Video Link:**  
+> [https://drive.google.com/file/d/161ccr9QtEjP6ZTp7gRSPt8I4uGepMaDl/view?usp=sharing](https://drive.google.com/file/d/161ccr9QtEjP6ZTp7gRSPt8I4uGepMaDl/view?usp=sharing)
+
+---
+
+## 🏛️ System Architecture
+
+The platform follows a centralized backend monorepo architecture. All frontend clients (Web, Mobile, Admin) interface exclusively with the centralized Backend REST API, ensuring single-source-of-truth business logic and secret protection.
 
 ```mermaid
 flowchart TD
-    WEB["Web App<br/>React.js"]
-    MOBILE["Mobile App<br/>React Native + Expo"]
-    ADMIN["Admin Panel<br/>React.js"]
+    subgraph Clients["Frontend Applications"]
+        WEB["🌐 Tenant Web App<br/>(React + Vite + Tailwind)"]
+        MOBILE["📱 Tenant Mobile App<br/>(React Native + Expo)"]
+        ADMIN["🏢 Executive Admin Panel<br/>(React + Vite + Tailwind)"]
+    end
 
-    BACKEND["Backend API<br/>Node.js + Express.js"]
-    DB[("MongoDB")]
-    AI["AI / LLM API"]
+    subgraph BackendGateway["Central API Gateway"]
+        BACKEND["⚡ Express REST API<br/>(Node.js + JWT Auth + CORS)"]
+    end
 
-    WEB --> BACKEND
-    MOBILE --> BACKEND
-    ADMIN --> BACKEND
+    subgraph Services["Storage & Intelligence Services"]
+        DB[("🍃 MongoDB Atlas<br/>(Properties, Users, Viewings)")]
+        AI["🧠 Groq AI Engine<br/>(Llama 3.3 70B Versatile)"]
+        CDN["☁️ Cloudinary CDN<br/>(Multi-Image Storage)"]
+    end
 
-    BACKEND --> DB
-    BACKEND --> AI
+    WEB -->|REST API Requests| BACKEND
+    MOBILE -->|REST API Requests| BACKEND
+    ADMIN -->|REST API Requests| BACKEND
+
+    BACKEND -->|Mongoose ODM| DB
+    BACKEND -->|LLM Inference ~400ms| AI
+    BACKEND -->|Multer Stream Upload| CDN
 ```
 
 ---
 
-## 2. Project Structure
+## 🔄 End-to-End System Lifecycle Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Admin as 🏢 Admin Panel
+    participant Backend as ⚡ Backend API
+    participant AI as 🧠 Groq AI Service
+    participant Cloudinary as ☁️ Cloudinary CDN
+    participant DB as 🍃 MongoDB Atlas
+    participant Tenant as 👤 Tenant (Web/App)
+
+    Note over Admin,DB: 1. Listing Ingestion & AI Optimization
+    Admin->>Backend: Input raw property details & binary images
+    Backend->>Cloudinary: Upload & transform property photos
+    Cloudinary-->>Backend: Secure CDN URLs
+    Backend->>AI: Generate professional Title & Marketing Description
+    AI-->>Backend: High-converting structured copy
+    Backend-->>Admin: Preview listing & AI copy
+    Admin->>Backend: Review & Publish listing
+    Backend->>DB: Save published listing
+
+    Note over Tenant,DB: 2. Discovery & Grounded AI Concierge
+    Tenant->>Backend: Search properties (Filters: City, Type, PKR Price)
+    Backend->>DB: Query published properties
+    DB-->>Backend: Matching property records
+    Backend-->>Tenant: Formatted property listings
+    Tenant->>Backend: Ask question: "Are utilities included in rent?"
+    Backend->>DB: Fetch property context & specs
+    Backend->>AI: Prompt with strict property facts + tenant question
+    AI-->>Backend: Grounded, anti-hallucination answer
+    Backend-->>Tenant: Instant contextual response
+
+    Note over Tenant,Admin: 3. Tour Booking & AI Lead Scoring
+    Tenant->>Backend: Schedule Viewing (Date, Time, Message)
+    Backend->>AI: Evaluate tenant inquiry seriousness & intent
+    AI-->>Backend: Lead Score (0-100) + Justification summary
+    Backend->>DB: Store viewing request with AI Lead Score
+    Backend-->>Admin: Real-time notification & tour booking alert
+    Admin->>Backend: Confirm / Reschedule tour status
+    Backend->>DB: Update viewing status
+    Backend-->>Tenant: Viewing confirmed notification
+```
+
+---
+
+## 📁 Monorepo Structure
 
 ```text
 property-rental-platform/
 │
-├── web/
-│   └── React Web Application
+├── 🌐 web/                  # Tenant-facing React 18 Web Application (Vite + Tailwind CSS)
+│   ├── src/
+│   │   ├── components/      # Glassmorphic UI components, SearchBar, PropertyGrid, Modals
+│   │   ├── pages/           # Home, PropertyList, PropertyDetail, Viewings, Favorites, Auth
+│   │   ├── context/         # AuthContext, FavoritesContext, ThemeContext, ToastContext
+│   │   └── services/        # Axios HTTP client & API service endpoints
+│   └── package.json
 │
-├── mobile/
-│   └── React Native + Expo Application
+├── 📱 mobile/               # Tenant-facing Mobile Application (React Native + Expo SDK 51)
+│   ├── app/
+│   │   ├── (auth)/          # Clean login, register, and email verification screens
+│   │   ├── (tabs)/          # 2-Column Home grid, Search, Saved Favorites, Bookings, Profile
+│   │   └── property/[id]/   # HD Carousel gallery, Grounded AI Chatbot, Tour booking
+│   ├── src/
+│   │   ├── components/      # Compact PropertyCard, Badges, SearchBar, StatusPills
+│   │   └── context/         # AuthContext, FavoritesContext
+│   └── package.json
 │
-├── admin/
-│   └── React Admin Panel
+├── 🏢 admin/                # Internal Executive Administration Panel (React + Vite)
+│   ├── src/
+│   │   ├── components/      # Dark-slate Sidebar, ImagePicker, WorkflowActions, Tables
+│   │   ├── pages/           # Dashboard, Properties, PropertyForm, Viewings & AI Leads, Users
+│   │   └── services/        # Admin property management, Cloudinary upload, Dashboard stats
+│   └── package.json
 │
-├── backend/
-│   └── Node.js + Express API
+├── ⚡ backend/              # Centralized Node.js + Express REST API Gateway
+│   ├── src/
+│   │   ├── config/          # MongoDB Mongoose connection, Cloudinary SDK, Groq Client
+│   │   ├── controllers/     # Auth, Public Properties, Admin, Viewings, AI, Favorites
+│   │   ├── middlewares/     # JWT Auth, Role Guard, Error Handler, Multer Upload
+│   │   ├── models/          # User, Property, ViewingRequest, Favorite, RefreshToken
+│   │   ├── routes/          # Express route definitions
+│   │   └── services/        # Business logic, AI prompts, Lead evaluation, Email service
+│   └── package.json
 │
-├── ai/
-│   └── AI-related code
+├── 🧠 ai/                   # AI System Prompts, Guardrails & Evaluation Heuristics
+│   ├── prompts/             # Title generator, description enhancer, grounded chatbot
+│   └── AGENTS.md
 │
-├── docs/
+├── 📚 docs/                 # Architectural Documentation, RFCs & API Guides
+│   ├── admin-panel-api-guide.md
+│   ├── web-and-mobile-api-guide.md
 │   ├── api.md
-│   ├── database.md
-│   └── project-requirements.md
+│   └── database.md
 │
-├── README.md
-├── .gitignore
-└── package.json
+├── AGENTS.md                # Project-wide development standards & Monorepo rules
+├── README.md                # Master platform documentation
+└── package.json             # Root monorepo workspace configuration
 ```
 
 ---
 
-# 3. Main Features
+## 🚀 Key Modules & Capabilities
 
-## Web Application
+### 1. 🌐 Tenant Web Application (`/web`)
+* **Aesthetics:** Aurora gradient backdrop, glassmorphism (`glass-card`, `glass-nav`), and dark/light theme switching.
+* **Smart Search:** Multi-facet filtering by location, property type, price ranges in Pakistani Rupees (`Rs. 60,000`), furnished state, and bedrooms.
+* **Property Detail & Showcase:** HD photo gallery carousel, verified amenity pills, and instant tour booking modal.
+* **Grounded AI Concierge:** Real-time conversational modal answering questions strictly from property metadata.
+* **Optimistic Favorites:** 1-click wishlist toggle synced directly with MongoDB Atlas.
 
-* User signup/login
-* Property listings
-* Property search
-* Property filters
-* Property details
-* Property images
-* Favorites
-* Request Viewing
-* Viewing status
-* Property-specific AI chatbot
+### 2. 📱 Tenant Mobile Application (`/mobile`)
+* **2-Column Compact Grid:** High-density, beautifully proportioned 2-in-a-row property listings (`numColumns={2}`) on Home, Search, and Favorites.
+* **Fallback Image System:** Automatic graceful fallback to high-resolution architectural photography when listings have no photos.
+* **Offline Resilience:** Null-safe favorites filtering, optimistic UI toggles, and token-based auto-restoration.
+* **Native Gestures:** Pull-to-refresh feeds, modal slide-ins, and keyboard-avoiding authentication.
 
-## Mobile Application
+### 3. 🏢 Executive Admin Panel (`/admin`)
+* **Executive Dashboard:** 4 dynamic KPI stat cards (Total Listings, Published, Pending Inquiries, Registered Tenants) and quick management actions.
+* **AI Content Studio:** 1-click generation of SEO-optimized property titles and professional descriptions from raw specs.
+* **Cloudinary Media Pipeline:** Multi-file drag-and-drop image upload with live thumbnail badges (`Ready to Upload` vs `Uploaded (Cloudinary)`).
+* **Viewing Inquiries & AI Lead Scoring:** Unified tour request management with automated AI lead seriousness evaluations (`★ 0–100`).
+* **Tenant Moderation:** Inspect tenant verification states and account moderation controls.
 
-* User signup/login
-* Property listings
-* Property search
-* Property filters
-* Property details
-* Favorites
-* Request Viewing
-* Viewing status
-* Property-specific AI chatbot
-
-## Admin Panel
-
-* Admin login
-* Dashboard
-* Add property
-* Edit property
-* Property management
-* AI-generated title and description
-* Review/edit AI content
-* Publish/unpublish property
-* User management
-* Viewing request management
-
-## Backend
-
-* Authentication
-* User APIs
-* Property APIs
-* Favorite APIs
-* Viewing APIs
-* Admin APIs
-* MongoDB integration
-* AI integration
-
-## AI
-
-* Property title generation
-* Property description generation
-* Property-specific chatbot
-* Inquiry lead scoring
+### 4. ⚡ Centralized REST Backend (`/backend`)
+* **Authentication:** Stateless Access Tokens + Secure HTTP-only Refresh Tokens with Argon2/bcrypt password hashing.
+* **Dynamic CORS Engine:** Multi-origin dev allowlist supporting local web, admin, and mobile network IP addresses.
+* **Strict Anti-Hallucination AI:** Groq Llama 3.3 70B integration with factual system prompts ensuring responses never fabricate unlisted property attributes.
+* **Security & Validation:** Joi / Express-validator request schema validation and rate limiting.
 
 ---
 
-# 4. Main Data Structure
+## 🛠️ Technology Stack
 
-All developers must use the same data structure.
-
-## Property
-
-```text
-propertyId
-title
-description
-propertyType
-price
-location
-bedrooms
-bathrooms
-amenities
-furnished
-images
-availability
-status
-```
-
-## User
-
-```text
-userId
-name
-email
-authentication
-favorites
-```
-
-## Favorite
-
-```text
-favoriteId
-userId
-propertyId
-```
-
-## Viewing Request
-
-```text
-viewingId
-userId
-propertyId
-userName
-date
-time
-message
-status
-createdAt
-```
-
-### Viewing Status
-
-```text
-pending
-confirmed
-rejected
-cancelled
-completed
-```
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend Web** | React 18, Vite 5, Tailwind CSS, Framer Motion, Lucide Icons, Axios |
+| **Frontend Mobile** | React Native, Expo SDK 51, TypeScript, React Navigation, Expo Vector Icons |
+| **Admin Panel** | React 18, Vite 5, Tailwind CSS, Plus Jakarta Sans, Heroicons |
+| **Backend API** | Node.js, Express.js, Mongoose ODM, JSON Web Tokens (JWT), Multer |
+| **Database** | MongoDB Atlas (Multi-collection relational modeling with indexation) |
+| **AI / LLM** | Groq SDK (Llama 3.3 70B Versatile, Temperature: 0.1 for high precision) |
+| **Media CDN** | Cloudinary REST Storage & Transformation API |
 
 ---
 
-# 5. Property Creation Flow
+## ⚙️ Quick Start & Local Setup
 
-The internal team enters the raw property information. AI generates a professional title and description. The admin reviews the content and publishes the property.
-
-```mermaid
-flowchart TD
-    OWNER["Property Owner"]
-    RAW["Raw Property Information"]
-    ADMIN["Admin Panel"]
-    AI["AI Description Generator"]
-    REVIEW["Admin Review / Edit"]
-    DB[("MongoDB")]
-    WEB["Web App"]
-    MOBILE["Mobile App"]
-
-    OWNER --> RAW
-    RAW --> ADMIN
-    ADMIN --> AI
-    AI --> REVIEW
-    REVIEW --> ADMIN
-    ADMIN -->|"Publish"| DB
-    DB --> WEB
-    DB --> MOBILE
-```
+### Prerequisites
+- **Node.js**: `v18.0.0` or higher
+- **npm**: `v9.0.0` or higher
+- **MongoDB Atlas** database connection URI
+- **Groq AI** API Key ([console.groq.com](https://console.groq.com))
+- **Cloudinary** Account (Cloud Name, API Key, API Secret)
 
 ---
 
-# 6. Tenant Property Flow
-
-```mermaid
-flowchart TD
-    USER["Tenant / User"]
-    HOME["Home"]
-    SEARCH["Search / Filters"]
-    LISTING["Property Listings"]
-    DETAILS["Property Details"]
-    FAVORITE["Save Favorite"]
-    CHAT["Property-specific AI Chatbot"]
-    VIEWING["Request Viewing"]
-
-    USER --> HOME
-    HOME --> SEARCH
-    SEARCH --> LISTING
-    LISTING --> DETAILS
-
-    DETAILS --> FAVORITE
-    DETAILS --> CHAT
-    DETAILS --> VIEWING
-```
-
----
-
-# 7. AI Chatbot Flow
-
-The chatbot is **property-specific**.
-
-When a user opens a property, the backend sends the property's context to the AI.
-
-The user does not need to tell the chatbot which property they are asking about.
-
-```mermaid
-sequenceDiagram
-    participant U as Tenant
-    participant W as Web / Mobile
-    participant B as Backend
-    participant AI as AI
-
-    U->>W: Open Property
-    W->>B: Request Property Details
-    B-->>W: Property Data + Property ID
-
-    U->>W: Ask Question
-    W->>B: Property ID + Question
-    B->>AI: Property Context + Question
-    AI-->>B: Answer
-    B-->>W: Answer
-    W-->>U: Display Answer
-```
-
-Normal chatbot questions are **not stored in the database**.
-
----
-
-# 8. Viewing Request Flow
-
-A database record is created only when the tenant requests a property viewing.
-
-```mermaid
-sequenceDiagram
-    participant U as Tenant
-    participant W as Web / Mobile
-    participant B as Backend
-    participant DB as MongoDB
-    participant A as Admin
-
-    U->>W: Click Request Viewing
-    W->>U: Show Date / Time Form
-    U->>W: Submit Request
-    W->>B: Send Viewing Request
-    B->>DB: Save Request as Pending
-    DB-->>B: Saved
-    B-->>W: Request Submitted
-
-    A->>B: View Pending Request
-    A->>B: Confirm / Reject
-    B->>DB: Update Status
-    DB-->>B: Updated
-    B-->>W: Updated Viewing Status
-    W-->>U: Show Status
-```
-
----
-
-# 9. Web App — Ahsan Ali
-
-The Web App is for tenants/users.
-
-### Pages and Features
-
-* Home page
-* Property listings
-* Search
-* Filters
-* Property details
-* Property images
-* Favorites
-* Request Viewing
-* Viewing status
-* Property-specific AI chatbot
-* Login/signup
-* User profile
-
-The Web App must use the property fields defined by the Backend.
-
----
-
-# 10. Mobile App — Farooque Sajjad
-
-The Mobile App is for tenants/users.
-
-### Features
-
-* Login/signup
-* Home
-* Property listings
-* Search
-* Filters
-* Property details
-* Property images
-* Favorites
-* Request Viewing
-* Viewing status
-* Property-specific AI chatbot
-* User profile
-
-The Mobile App uses the **same Backend APIs and property data** as the Web App.
-
----
-
-# 11. Admin Panel — Muhammad Hanif
-
-The Admin Panel is for the internal team.
-
-### Features
-
-* Admin login
-* Dashboard
-* Add property
-* Edit property
-* Property management
-* AI title/description generation
-* Review/edit AI content
-* Publish property
-* Unpublish property
-* User management
-* Viewing request management
-
-### Admin Property Flow
-
-```mermaid
-flowchart TD
-    ADMIN["Admin"]
-    ADD["Add / Edit Property"]
-    AI["AI Generates Title + Description"]
-    REVIEW["Review / Edit"]
-    PUBLISH["Publish"]
-    DB[("MongoDB")]
-    USERS["Web + Mobile Users"]
-
-    ADMIN --> ADD
-    ADD --> AI
-    AI --> REVIEW
-    REVIEW --> PUBLISH
-    PUBLISH --> DB
-    DB --> USERS
-```
-
----
-
-# 12. Backend — Mohammad Arsalan
-
-The Backend is the central system of the platform.
-
-### Authentication APIs
-
-* Signup
-* Login
-* User authentication
-* Role/permission management
-
-### Property APIs
-
-* Create Property
-* Get Properties
-* Get Single Property
-* Update Property
-* Delete/Unpublish Property
-* Search
-* Filters
-
-### User APIs
-
-* User profile
-* User information
-
-### Favorite APIs
-
-* Add favorite
-* Remove favorite
-* Get user's favorites
-
-### Viewing APIs
-
-* Request viewing
-* Get viewing requests
-* Get user's viewing requests
-* Confirm viewing
-* Reject viewing
-* Update viewing status
-
-### Admin APIs
-
-* Property management
-* Property publishing
-* User management
-* Viewing management
-
-### AI Integration
-
-* Description generator API
-* Property chatbot API
-* Lead scoring API
-
----
-
-# 13. MongoDB
-
-MongoDB will store the main platform data.
-
-### Collections
-
-```text
-users
-properties
-favorites
-viewingRequests
-```
-
-Normal AI chatbot questions are not stored.
-
----
-
-# 14. AI — Sanaullah
-
-## Property Description Generator
-
-Input:
-
-```text
-Raw property information
-```
-
-Output:
-
-```text
-Professional property title
-Professional property description
-```
-
-The admin reviews the generated content before publishing.
-
-## Property-Specific Chatbot
-
-The chatbot receives:
-
-```text
-Property ID
-Property Information
-User Question
-```
-
-It returns an answer based on that property's information.
-
-## Lead Scoring
-
-AI analyzes available tenant/viewing information and generates a seriousness score.
-
-Example:
-
-```text
-Lead Score: 90/100
-```
-
-The score is available to the internal team through the Admin Panel.
-
----
-
-# 15. Technology Stack
-
-| Part        | Technology            |
-| ----------- | --------------------- |
-| Web         | React.js + JavaScript |
-| Admin Panel | React.js + JavaScript |
-| Mobile      | React Native + Expo   |
-| Backend     | Node.js + Express.js  |
-| Database    | MongoDB               |
-| AI          | AI/LLM API            |
-
----
-
-# 16. Team Responsibilities
-
-| Developer        | Responsibility             |
-| ---------------- | -------------------------- |
-| Sanaullah        | Complete AI                |
-| Ahsan Ali        | Complete Web App           |
-| Muhammad Hanif   | Complete Admin Panel       |
-| Farooque Sajjad  | Complete Mobile App        |
-| Mohammad Arsalan | Complete Backend + MongoDB |
-
-### Sanaullah — AI
-
-* Property title generation
-* Property description generation
-* Property-specific chatbot
-* Inquiry lead scoring
-* AI integration requirements
-
-### Ahsan Ali — Web
-
-* Home
-* Listings
-* Search
-* Filters
-* Property details
-* Favorites
-* Request Viewing
-* Viewing status
-* Chatbot UI
-* Authentication
-* Backend integration
-
-### Muhammad Hanif — Admin Panel
-
-* Admin login
-* Dashboard
-* Property management
-* Add/edit property
-* AI content review
-* Publish/unpublish
-* User management
-* Viewing request management
-* Backend integration
-
-### Farooque Sajjad — Mobile
-
-* Login/signup
-* Home
-* Listings
-* Search
-* Filters
-* Property details
-* Favorites
-* Request Viewing
-* Viewing status
-* Chatbot UI
-* Backend integration
-
-### Mohammad Arsalan — Backend
-
-* Node.js + Express
-* Authentication
-* Property APIs
-* User APIs
-* Favorite APIs
-* Viewing APIs
-* Admin APIs
-* MongoDB
-* Roles/permissions
-* AI integration
-
----
-
-# 17. Git Branch Strategy
-
-We use:
-
-```text
-main
-  │
-  └── develop
-        │
-        ├── feature/web-...
-        ├── feature/mobile-...
-        ├── feature/admin-...
-        ├── feature/backend-...
-        └── feature/ai-...
-```
-
-## Main Branch
-
-`main` contains the stable/production-ready version.
-
-**Do not directly push to `main`.**
-
-## Develop Branch
-
-`develop` contains the latest integrated development version.
-
-All feature branches should be created from `develop`.
-
----
-
-# 18. Creating a Branch
-
-First update your local `develop`:
-
+### Step 1: Clone the Repository
 ```bash
-git checkout develop
-git pull origin develop
-```
-
-Create a feature branch:
-
-```bash
-git checkout -b feature/your-feature-name
-```
-
-### Examples
-
-```bash
-feature/web-property-listing
-feature/web-search
-
-feature/mobile-property-details
-feature/mobile-viewing-request
-
-feature/admin-property-management
-feature/admin-viewing-requests
-
-feature/backend-property-api
-feature/backend-viewing-api
-
-feature/ai-description-generator
-feature/ai-chatbot
+git clone https://github.com/ArsalanTheCoder/property-rental-platform.git
+cd property-rental-platform
 ```
 
 ---
 
-# 19. Working With Your Branch
+### Step 2: Configure Environment Variables
 
-After making changes:
-
-```bash
-git status
-```
-
-Add changes:
-
-```bash
-git add .
-```
-
-Commit:
-
-```bash
-git commit -m "Add property listing page"
-```
-
-Push:
-
-```bash
-git push -u origin feature/web-property-listing
-```
-
-Then create a **Pull Request** on GitHub.
-
----
-
-# 20. Pull Request Workflow
-
-```mermaid
-flowchart LR
-    DEVELOP["develop"]
-    BRANCH["Feature Branch"]
-    CODE["Development"]
-    PUSH["Push to GitHub"]
-    PR["Pull Request"]
-    TEST["Review / Test"]
-    MERGE["Merge to develop"]
-    MAIN["Stable → main"]
-
-    DEVELOP --> BRANCH
-    BRANCH --> CODE
-    CODE --> PUSH
-    PUSH --> PR
-    PR --> TEST
-    TEST --> MERGE
-    MERGE --> MAIN
-```
-
-Do not directly merge feature branches into `main`.
-
----
-
-# 21. Branch Naming
-
-### New Features
-
-```text
-feature/<area>-<feature>
-```
-
-Examples:
-
-```text
-feature/web-search
-feature/mobile-login
-feature/admin-properties
-feature/backend-auth
-feature/ai-chatbot
-```
-
-### Bug Fixes
-
-```text
-fix/<area>-<issue>
-```
-
-Examples:
-
-```text
-fix/web-property-filter
-fix/backend-viewing-status
-```
-
----
-
-# 22. Commit Messages
-
-Use short and meaningful commit messages.
-
-### Good
-
-```bash
-git commit -m "Add property listing page"
-git commit -m "Add property search API"
-git commit -m "Add viewing request form"
-git commit -m "Integrate AI chatbot"
-```
-
-### Avoid
-
-```bash
-git commit -m "changes"
-git commit -m "update"
-git commit -m "work done"
-```
-
----
-
-# 23. API Contract
-
-The Backend defines the API structure.
-
-Web, Mobile, Admin, and AI must follow the same structure.
-
-### Property API Example
-
-```json
-{
-  "id": "...",
-  "title": "...",
-  "description": "...",
-  "propertyType": "...",
-  "price": 50000,
-  "location": "...",
-  "bedrooms": 2,
-  "bathrooms": 2,
-  "amenities": [],
-  "furnished": true,
-  "images": [],
-  "availability": true,
-  "status": "published"
-}
-```
-
-Do not change shared field names without informing the Backend developer.
-
----
-
-# 24. API Documentation
-
-API documentation should be maintained in:
-
-```text
-docs/api.md
-```
-
-For every API, document:
-
-* Method
-* Endpoint
-* Purpose
-* Request body
-* Response
-* Authentication requirement
-
-### Example
-
-```text
-POST /api/viewings
-
-Purpose:
-Create a property viewing request.
-
-Request:
-userId
-propertyId
-date
-time
-message
-
-Response:
-viewingId
-status
-createdAt
-```
-
----
-
-# 25. Database Documentation
-
-Database documentation should be maintained in:
-
-```text
-docs/database.md
-```
-
-It should contain:
-
-* Users
-* Properties
-* Favorites
-* Viewing Requests
-
-Any database structure change must also be updated in this file.
-
----
-
-# 26. Environment Variables
-
-Never commit passwords, API keys, or secrets.
-
-Use `.env` files locally.
-
-Example:
-
+#### Backend (`backend/.env`)
 ```env
 PORT=5000
-MONGO_URI=
 NODE_ENV=development
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/property-rental?retryWrites=true&w=majority
+CLIENT_ORIGIN=http://localhost:3000,http://localhost:5173
 
-JWT_ACCESS_SECRET=
-JWT_REFRESH_SECRET=
+JWT_ACCESS_SECRET=your_super_secret_access_jwt_key_here_32_chars
+JWT_REFRESH_SECRET=your_super_secret_refresh_jwt_key_here_32_chars
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 
-CLIENT_ORIGIN=http://localhost:3000
+# Groq AI Credentials
+GROQ_API_KEY=gsk_your_groq_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
 
-AI_API_KEY=
+# Cloudinary Storage
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Master Admin Seed
+ADMIN_EMAIL=admin@rentalplatform.com
+ADMIN_PASSWORD=AdminSecurePass123!
 ```
 
-`.env` must be included in `.gitignore`.
-
-Create an example file:
-
-```text
-.env.example
+#### Web Application (`web/.env`)
+```env
+VITE_API_BASE_URL=http://localhost:5000/api/v1
 ```
 
-This file documents the required variables without containing real values.
-
----
-
-# 27. Development Rules
-
-1. Do not push directly to `main`.
-2. Create feature branches from `develop`.
-3. Pull the latest `develop` before starting new work.
-4. Keep commits small and meaningful.
-5. Do not change shared API/data structures without informing the Backend developer.
-6. Never commit `.env` files or API keys.
-7. Test your feature before creating a Pull Request.
-8. Update API/database documentation when necessary.
-9. Use the existing project structure.
-10. Keep Web, Mobile, Admin, Backend, and AI responsibilities separate.
-
----
-
-# 28. Standard Development Flow
-
-```mermaid
-flowchart TD
-    START["Pull latest develop"]
-    BRANCH["Create feature branch"]
-    DEVELOP["Develop feature"]
-    TEST["Test locally"]
-    COMMIT["Commit changes"]
-    PUSH["Push branch"]
-    PR["Create Pull Request"]
-    REVIEW["Review / Testing"]
-    MERGE["Merge into develop"]
-    RELEASE["Stable version → main"]
-
-    START --> BRANCH
-    BRANCH --> DEVELOP
-    DEVELOP --> TEST
-    TEST --> COMMIT
-    COMMIT --> PUSH
-    PUSH --> PR
-    PR --> REVIEW
-    REVIEW --> MERGE
-    MERGE --> RELEASE
+#### Admin Panel (`admin/.env`)
+```env
+VITE_API_BASE_URL=http://localhost:5000/api/v1
+VITE_USE_MOCKS=false
 ```
 
 ---
 
-# 29. Final System Flow
+### Step 3: Install Dependencies & Run
 
-```mermaid
-flowchart TD
-    OWNER["Property Owner"]
-    RAW["Raw Property Information"]
-    ADMIN["Admin Panel"]
-    AI_DESC["AI Description Generator"]
-    REVIEW["Admin Review"]
-    DB[("MongoDB")]
-    BACKEND["Backend API"]
-    WEB["Web App"]
-    MOBILE["Mobile App"]
-    TENANT["Tenant"]
-    CHAT["Property-specific AI Chatbot"]
-    VIEW["Request Viewing"]
-    STATUS["Viewing Status"]
+Open separate terminal windows for each service:
 
-    OWNER --> RAW
-    RAW --> ADMIN
-    ADMIN --> AI_DESC
-    AI_DESC --> REVIEW
-    REVIEW --> ADMIN
-    ADMIN --> DB
+#### 1. Start Backend API & Seed Admin
+```bash
+cd backend
+npm install
+npm run seed:admin
+npm run dev
+# Server running at http://localhost:5000/api/v1
+```
 
-    DB --> BACKEND
-    BACKEND --> WEB
-    BACKEND --> MOBILE
+#### 2. Start Tenant Web App
+```bash
+cd web
+npm install
+npm run dev
+# Web running at http://localhost:3000
+```
 
-    WEB --> TENANT
-    MOBILE --> TENANT
+#### 3. Start Executive Admin Panel
+```bash
+cd admin
+npm install
+npm run dev
+# Admin running at http://localhost:5173
+```
 
-    TENANT --> CHAT
-    CHAT --> BACKEND
-    BACKEND --> CHAT
-
-    TENANT --> VIEW
-    VIEW --> BACKEND
-    BACKEND --> DB
-    DB --> ADMIN
-    ADMIN --> STATUS
-    STATUS --> BACKEND
-    BACKEND --> WEB
-    BACKEND --> MOBILE
+#### 4. Start Mobile Application
+```bash
+cd mobile
+npm install
+npm start
+# Press 'a' for Android emulator or scan QR code via Expo Go
 ```
 
 ---
 
-## Project Goal
+## 🔑 Default Master Credentials
 
-The complete flow of the platform is:
+| Portal | Role | Email | Password |
+| :--- | :--- | :--- | :--- |
+| **Admin Panel** | Master Administrator | `admin@rentalplatform.com` | `AdminSecurePass123!` |
+| **Web / Mobile** | Demo Tenant | `tenant@rentalplatform.com` | `TenantPass123!` |
 
-**Raw Property Information → Admin → AI-assisted Content → Review → Publish → MongoDB → Backend → Web/Mobile → Tenant → AI Questions / Request Viewing**
+---
 
-All developers must use the same **API structure, database structure, property fields, and project conventions** so that Web, Mobile, Admin, Backend, and AI work together as one system.
+## 👥 Project Team & Engineering Roles
 
+| Team Member | Role | Key Contributions & Scope of Work |
+| :--- | :--- | :--- |
+| **Mohammad Arsalan**<br/>`@ArsalanTheCoder` | **Project Architect & Lead Full-Stack Engineer** | • Overall System Architecture, Monorepo Setup & Git Branching Strategy<br/>• Centralized Backend REST API Gateway & Controller Implementation<br/>• MongoDB Atlas Relational Schema Modeling, Indexes & Validation<br/>• JWT Authentication (Access/Refresh Tokens) & Dynamic Multi-Origin CORS<br/>• Cloudinary Image Pipeline & Full System Integration across Web/Admin/Mobile |
+| **Muhammad Hanif**<br/>`@Hanif` | **Admin Panel & Operations Specialist** | • Internal Executive Admin Panel (`/admin`) Development in React 18 & Vite<br/>• Property Creation, Updating, and Status Lifecycle Management<br/>• Image Picker with Real Binary File Previews & Upload Progress<br/>• Viewing Requests & Tour Bookings Administration Interface<br/>• Admin Panel Integration Contracts & Documentation (`docs/admin-panel-api-guide.md`) |
+| **Farooque Sajjad**<br/>`@Farooquekk` | **Mobile App Developer** | • Tenant-Facing Mobile Application (`/mobile`) in React Native & Expo SDK 51<br/>• 2-Column Compact Grid Property Feed (`numColumns={2}`) & Search<br/>• High-Resolution Fallback Image Pipeline for Missing Photos<br/>• Mobile Auth, Persistent Saved Favorites Context & Viewing Bookings Flow<br/>• Cross-Device Network Adaptability (Physical Android & Emulator Support) |
+| **Ihsan Ali**<br/>`@Ihsanali786` | **Web Frontend Developer** | • Tenant-Facing Web Portal (`/web`) in React 18, Vite & Tailwind CSS<br/>• Aurora Gradient Hero Section, Glassmorphic Navigation & Footer<br/>• Multi-Criteria Property Search & Filter System (PKR Price Range, Bedrooms, City)<br/>• Property Details Showcase, Photo Gallery & Tour Request Appointment Modal<br/>• Web API Integration & Responsive Layout Design |
+| **Sanaullah** | **AI / LLM Prompt Engineer** | • Groq SDK Integration (`llama-3.3-70b-versatile`) with Sub-Second Inference<br/>• AI Property Marketing Title & High-Converting Description Generation<br/>• Strict Anti-Hallucination Grounded Q&A Chatbot System Prompts<br/>• Automated Tenant Inquiry Seriousness Lead Scoring Heuristics (`★ 0–100`)<br/>• AI Integration Boundaries & Service Layer Documentation |
 
+---
 
+## 📜 Monorepo Guidelines & Code of Conduct
+
+1. **API Boundary:** Frontends must interface with MongoDB solely through the Express REST API Gateway. Direct database imports across directories are strictly prohibited.
+2. **Secret Protection:** AI keys, Cloudinary credentials, and database URIs must never be bundled into client bundles.
+3. **Data Integrity:** All applications must adhere strictly to the shared property and viewing request schemas documented under `docs/`.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by the <b>HAVEN Engineering Team</b> for modern property rental discovery.</sub>
+</div>
