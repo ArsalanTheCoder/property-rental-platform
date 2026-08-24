@@ -1,80 +1,100 @@
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Property, PropertySummary } from "@/types";
-import { colors, radius, shadow, spacing, typography } from "@/constants/theme";
+import { colors, radius, shadow, spacing, typography, FALLBACK_PROPERTY_IMAGE } from "@/constants/theme";
 import { formatPrice } from "@/utils/format";
 import { useFavorites } from "@/context/FavoritesContext";
 
-// Accepts either a full Property (search/home/details) or the
-// lighter PropertySummary returned inside a favorite, since the
-// backend does not populate every field in that case.
 interface PropertyCardProps {
   property: Property | PropertySummary;
+  style?: ViewStyle;
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, style }: PropertyCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const saved = isFavorite(property.id);
 
+  // Fallback image if property has no photos attached
+  const imageUri =
+    property.images && property.images.length > 0 && property.images[0]
+      ? property.images[0]
+      : FALLBACK_PROPERTY_IMAGE;
+
   return (
     <TouchableOpacity
-      activeOpacity={0.9}
-      style={styles.card}
+      activeOpacity={0.92}
+      style={[styles.card, style]}
       onPress={() => router.push(`/property/${property.id}`)}
     >
+      {/* Thumbnail & Badges */}
       <View style={styles.imageWrap}>
-        <Image source={{ uri: property.images[0] }} style={styles.image} />
+        <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
 
+        {/* Top Type Tag */}
+        {property.propertyType && (
+          <View style={styles.typeBadge}>
+            <Text style={styles.typeText}>{property.propertyType}</Text>
+          </View>
+        )}
+
+        {/* Top Right Favorite Button */}
         <TouchableOpacity
           style={styles.favoriteButton}
           onPress={() => toggleFavorite(property.id)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          activeOpacity={0.8}
         >
           <Feather
             name="heart"
-            size={18}
-            color={saved ? colors.danger : colors.textOnDark}
-            style={saved ? undefined : styles.favoriteIconOutline}
+            size={14}
+            color={saved ? colors.danger : "#FFFFFF"}
           />
         </TouchableOpacity>
 
         {property.availability === false && (
           <View style={styles.unavailableTag}>
-            <Text style={styles.unavailableText}>Not available</Text>
+            <Text style={styles.unavailableText}>Rented</Text>
           </View>
         )}
       </View>
 
+      {/* Card Body */}
       <View style={styles.info}>
-        <View style={styles.rowBetween}>
-          <Text style={styles.price}>{formatPrice(property.price)}/mo</Text>
-          {property.propertyType && <Text style={styles.type}>{property.propertyType}</Text>}
+        {/* Price Tag */}
+        <View style={styles.priceRow}>
+          <Text style={styles.price} numberOfLines={1}>
+            {formatPrice(property.price)}
+          </Text>
+          <Text style={styles.priceSub}>/mo</Text>
         </View>
 
+        {/* Title */}
         <Text style={styles.title} numberOfLines={1}>
           {property.title}
         </Text>
 
+        {/* Location */}
         <View style={styles.locationRow}>
-          <Feather name="map-pin" size={13} color={colors.textSecondary} />
+          <Feather name="map-pin" size={11} color={colors.accent} />
           <Text style={styles.location} numberOfLines={1}>
-            {property.location.address}, {property.location.city}
+            {property.location.city || property.location.address}
           </Text>
         </View>
 
+        {/* Specs Pill Row */}
         {(property.bedrooms !== undefined || property.bathrooms !== undefined) && (
           <View style={styles.detailsRow}>
             {property.bedrooms !== undefined && (
               <View style={styles.detailItem}>
-                <Feather name="grid" size={13} color={colors.textSecondary} />
+                <Feather name="grid" size={11} color={colors.textSecondary} />
                 <Text style={styles.detailText}>{property.bedrooms} Bed</Text>
               </View>
             )}
             {property.bathrooms !== undefined && (
               <View style={styles.detailItem}>
-                <Feather name="droplet" size={13} color={colors.textSecondary} />
+                <Feather name="droplet" size={11} color={colors.textSecondary} />
                 <Text style={styles.detailText}>{property.bathrooms} Bath</Text>
               </View>
             )}
@@ -87,94 +107,116 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     overflow: "hidden",
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
     ...shadow.card,
   },
   imageWrap: {
-    height: 170,
+    height: 125,
     backgroundColor: colors.divider,
+    position: "relative",
   },
   image: {
     width: "100%",
     height: "100%",
   },
-  favoriteButton: {
+  typeBadge: {
     position: "absolute",
-    top: spacing.md,
-    right: spacing.md,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.overlay,
-    alignItems: "center",
-    justifyContent: "center",
+    top: spacing.xs + 2,
+    left: spacing.xs + 2,
+    backgroundColor: "rgba(15, 23, 42, 0.78)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.sm - 2,
   },
-  favoriteIconOutline: {
-    opacity: 0.95,
+  typeText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    textTransform: "uppercase",
   },
   unavailableTag: {
     position: "absolute",
-    left: spacing.md,
-    bottom: spacing.md,
-    backgroundColor: colors.overlay,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.pill,
+    bottom: spacing.xs,
+    left: spacing.xs,
+    backgroundColor: "rgba(220, 38, 38, 0.9)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.sm - 2,
   },
   unavailableText: {
-    ...typography.tiny,
-    color: colors.textOnDark,
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  favoriteButton: {
+    position: "absolute",
+    top: spacing.xs + 2,
+    right: spacing.xs + 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   info: {
-    padding: spacing.lg,
+    padding: spacing.sm + 2,
   },
-  rowBetween: {
+  priceRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: spacing.xs,
+    alignItems: "baseline",
+    marginBottom: 2,
   },
   price: {
-    ...typography.h3,
-    color: colors.primary,
-  },
-  type: {
-    ...typography.captionStrong,
+    fontSize: 13,
+    fontWeight: "800",
     color: colors.accent,
   },
+  priceSub: {
+    fontSize: 10,
+    fontWeight: "500",
+    color: colors.textMuted,
+    marginLeft: 2,
+  },
   title: {
-    ...typography.bodyStrong,
+    fontSize: 13,
+    fontWeight: "700",
     color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    marginBottom: 2,
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
-    marginBottom: spacing.md,
+    gap: 3,
+    marginBottom: 6,
   },
   location: {
-    ...typography.caption,
+    fontSize: 11,
     color: colors.textSecondary,
     flexShrink: 1,
   },
   detailsRow: {
     flexDirection: "row",
-    gap: spacing.lg,
-    paddingTop: spacing.sm,
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingTop: 4,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
   },
   detailItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: 3,
   },
   detailText: {
-    ...typography.caption,
+    fontSize: 10,
+    fontWeight: "600",
     color: colors.textSecondary,
   },
 });

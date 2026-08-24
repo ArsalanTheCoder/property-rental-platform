@@ -73,21 +73,21 @@ export const PropertyFilters = ({ filters, onChange, onReset }) => {
         <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
           <span>Max Monthly Rent</span>
           <span className="text-brand-500 font-extrabold text-sm">
-            ${Number(filters.maxPrice || 6000).toLocaleString()}
+            {filters.maxPrice ? `Rs. ${Number(filters.maxPrice).toLocaleString()}` : 'Any Price'}
           </span>
         </div>
         <input
           type="range"
-          min="500"
-          max="6000"
-          step="100"
-          value={filters.maxPrice || 6000}
-          onChange={(e) => onChange({ ...filters, maxPrice: e.target.value })}
+          min="10000"
+          max="300000"
+          step="5000"
+          value={filters.maxPrice || 300000}
+          onChange={(e) => onChange({ ...filters, maxPrice: e.target.value === '300000' ? '' : e.target.value })}
           className="w-full accent-brand-500 cursor-pointer"
         />
         <div className="flex justify-between text-[10px] text-slate-400 font-semibold">
-          <span>$500</span>
-          <span>$6,000+</span>
+          <span>Rs. 10,000</span>
+          <span>Rs. 300,000+</span>
         </div>
       </div>
 

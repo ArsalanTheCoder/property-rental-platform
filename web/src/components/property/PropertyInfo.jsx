@@ -13,7 +13,7 @@ export const PropertyInfo = ({ property }) => {
       <div className="flex flex-col gap-3 pb-6 border-b border-slate-200 dark:border-dark-border">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="brand" size="md">{property.propertyType}</Badge>
-          <Badge variant="gold" size="md">{property.furnished}</Badge>
+          <Badge variant="gold" size="md">{property.furnished ? 'Furnished' : 'Unfurnished'}</Badge>
           <Badge variant="confirmed" size="md">Available Now</Badge>
         </div>
 
@@ -65,7 +65,7 @@ export const PropertyInfo = ({ property }) => {
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-slate-400 uppercase">Condition</span>
-            <span className="text-base font-extrabold text-slate-900 dark:text-white">{property.furnished}</span>
+            <span className="text-base font-extrabold text-slate-900 dark:text-white">{property.furnished ? 'Furnished' : 'Unfurnished'}</span>
           </div>
         </div>
       </div>

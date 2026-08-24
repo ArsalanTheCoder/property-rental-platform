@@ -21,8 +21,16 @@ export const FavoritesProvider = ({ children }) => {
       try {
         const res = await favoriteService.getFavorites();
         if (res.success && Array.isArray(res.favorites)) {
-          // Normalize IDs if returned as objects or strings
-          const favIds = res.favorites.map(f => (typeof f === 'object' ? (f._id || f.propertyId || f.id) : f));
+          // Normalize IDs to extract the underlying propertyId correctly
+          const favIds = res.favorites
+            .map((f) => {
+              if (typeof f === 'string') return f;
+              if (f.property && typeof f.property === 'object') {
+                return f.property._id || f.property.propertyId || f.property.id;
+              }
+              return f.propertyId || f._id || f.id;
+            })
+            .filter(Boolean);
           setFavorites(favIds);
         }
       } catch (err) {

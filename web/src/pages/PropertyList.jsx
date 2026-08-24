@@ -19,7 +19,7 @@ export const PropertyList = () => {
     propertyType: searchParams.get('propertyType') || 'all',
     bedrooms: searchParams.get('bedrooms') || 'all',
     bathrooms: searchParams.get('bathrooms') || 'all',
-    maxPrice: searchParams.get('maxPrice') || '6000',
+    maxPrice: searchParams.get('maxPrice') || '',
     minPrice: searchParams.get('minPrice') || '',
     furnished: searchParams.get('furnished') || 'all',
     sort: searchParams.get('sort') || searchParams.get('sortBy') || 'newest',
@@ -33,15 +33,18 @@ export const PropertyList = () => {
     const fetchProperties = async () => {
       setLoading(true);
       try {
+        const currentFilters = getFiltersFromURL();
+        setFilters(currentFilters);
+
         const queryParams = {};
-        if (filters.search) queryParams.search = filters.search;
-        if (filters.city && filters.city !== 'all') queryParams.city = filters.city;
-        if (filters.propertyType && filters.propertyType !== 'all') queryParams.propertyType = filters.propertyType;
-        if (filters.bedrooms && filters.bedrooms !== 'all') queryParams.bedrooms = filters.bedrooms;
-        if (filters.maxPrice) queryParams.maxPrice = filters.maxPrice;
-        if (filters.minPrice) queryParams.minPrice = filters.minPrice;
-        if (filters.furnished && filters.furnished !== 'all') queryParams.furnished = filters.furnished;
-        if (filters.sort) queryParams.sort = filters.sort;
+        if (currentFilters.search) queryParams.search = currentFilters.search;
+        if (currentFilters.city && currentFilters.city !== 'all') queryParams.city = currentFilters.city;
+        if (currentFilters.propertyType && currentFilters.propertyType !== 'all') queryParams.propertyType = currentFilters.propertyType;
+        if (currentFilters.bedrooms && currentFilters.bedrooms !== 'all') queryParams.bedrooms = currentFilters.bedrooms.replace('+', '');
+        if (currentFilters.maxPrice) queryParams.maxPrice = currentFilters.maxPrice;
+        if (currentFilters.minPrice) queryParams.minPrice = currentFilters.minPrice;
+        if (currentFilters.furnished && currentFilters.furnished !== 'all') queryParams.furnished = currentFilters.furnished;
+        if (currentFilters.sort) queryParams.sort = currentFilters.sort;
 
         const res = await propertyService.getProperties(queryParams);
         if (res.success && Array.isArray(res.properties)) {
@@ -79,7 +82,7 @@ export const PropertyList = () => {
       propertyType: 'all',
       bedrooms: 'all',
       bathrooms: 'all',
-      maxPrice: '6000',
+      maxPrice: '',
       minPrice: '',
       furnished: 'all',
       sort: 'newest',

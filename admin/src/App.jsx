@@ -51,8 +51,8 @@ export default function App() {
                 <Route path="/properties/new" element={<PropertyFormPage />} />
                 <Route path="/properties/:propertyId" element={<PropertyDetailPage />} />
                 <Route path="/properties/:propertyId/edit" element={<PropertyFormPage />} />
-                <Route path="/inquiries" element={<InquiriesPage />} />
-                <Route path="/inquiries/:inquiryId" element={<InquiryDetailPage />} />
+                <Route path="/inquiries" element={<Navigate to="/viewing-requests" replace />} />
+                <Route path="/inquiries/:inquiryId" element={<Navigate to="/viewing-requests" replace />} />
                 <Route path="/viewing-requests" element={<ViewingRequestsPage />} />
                 <Route path="/viewing-requests/:viewingId" element={<ViewingRequestDetailPage />} />
                 <Route path="/users" element={<UsersPage />} />

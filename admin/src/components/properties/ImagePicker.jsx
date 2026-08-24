@@ -6,138 +6,166 @@ export function isBlobUrl(url) {
   return typeof url === 'string' && url.startsWith('blob:')
 }
 
-let imageKeyCounter = 0
-
+let fileKeyCounter = 0
 function nextKey() {
-  imageKeyCounter += 1
-  return `local-image-${imageKeyCounter}`
+  fileKeyCounter += 1
+  return `file-${fileKeyCounter}`
 }
 
 /**
- * Frontend-only local image picker for the property form.
- *
- * Local images are previewed with browser object URLs and surfaced to the
- * parent as blob: URLs so the mock property flow can retain and display them
- * during the current session. Nothing is uploaded to a server — the real
- * backend/upload contract is pending (owner: Mohammad Arsalan).
+ * Production-ready Image Picker with instant preview and multi-file selection for Cloudinary upload.
  */
-export default function ImagePicker({ images = [], onChange, hint }) {
+export default function ImagePicker({
+  existingImages = [],
+  onExistingImagesChange,
+  newFiles = [],
+  onNewFilesChange,
+  hint,
+}) {
   const inputRef = useRef(null)
-  const [items, setItems] = useState(() =>
-    images.filter(isBlobUrl).map((url) => ({ key: nextKey(), name: null, objectUrl: url }))
-  )
+  const [filePreviews, setFilePreviews] = useState([])
 
-  // Keep latest values in refs so the unmount cleanup never sees stale state.
-  const latestImagesRef = useRef(images)
-  latestImagesRef.current = images
-  const itemsRef = useRef(items)
-  itemsRef.current = items
-
-  // Revoke object URLs that were never persisted (removed/abandoned previews).
-  // URLs still present in `images` (e.g. submitted to the mock) are left alive
-  // so the detail page can keep rendering them for the current session.
+  // Generate previews for selected File objects
   useEffect(() => {
-    return () => {
-      itemsRef.current.forEach((item) => {
-        if (!latestImagesRef.current.includes(item.objectUrl)) {
-          URL.revokeObjectURL(item.objectUrl)
-        }
-      })
-    }
-  }, [])
+    const previews = newFiles.map((file) => ({
+      key: file.__pickerKey || (file.__pickerKey = nextKey()),
+      file,
+      name: file.name,
+      size: (file.size / 1024).toFixed(1) + ' KB',
+      previewUrl: URL.createObjectURL(file),
+    }))
 
-  function handleFiles(event) {
-    const files = Array.from(event.target.files ?? [])
-    // Prevent obvious non-image files from being accepted.
-    const accepted = files.filter((file) => file.type && file.type.startsWith('image/'))
-    if (accepted.length) {
-      const nextItems = [
-        ...items,
-        ...accepted.map((file) => ({
-          key: nextKey(),
-          name: file.name,
-          objectUrl: URL.createObjectURL(file),
-        })),
-      ]
-      setItems(nextItems)
-      onChange(nextItems.map((item) => item.objectUrl))
+    setFilePreviews(previews)
+
+    return () => {
+      previews.forEach((p) => URL.revokeObjectURL(p.previewUrl))
     }
-    // Reset so picking the same file again still fires the change event.
+  }, [newFiles])
+
+  function handleFileSelect(event) {
+    const files = Array.from(event.target.files ?? [])
+    const acceptedImages = files.filter(
+      (file) => file.type && file.type.startsWith('image/')
+    )
+
+    if (acceptedImages.length > 0) {
+      const combined = [...newFiles, ...acceptedImages].slice(0, 10)
+      onNewFilesChange?.(combined)
+    }
+
     event.target.value = ''
   }
 
-  function removeImage(key) {
-    const removed = items.find((item) => item.key === key)
-    const nextItems = items.filter((item) => item.key !== key)
-    setItems(nextItems)
-    onChange(nextItems.map((item) => item.objectUrl))
-    if (removed) {
-      URL.revokeObjectURL(removed.objectUrl)
-    }
+  function removeExistingImage(indexToRemove) {
+    const updated = existingImages.filter((_, idx) => idx !== indexToRemove)
+    onExistingImagesChange?.(updated)
   }
 
+  function removeNewFile(indexToRemove) {
+    const updated = newFiles.filter((_, idx) => idx !== indexToRemove)
+    onNewFilesChange?.(updated)
+  }
+
+  const totalCount = (existingImages?.length || 0) + (newFiles?.length || 0)
+
   return (
-    <div>
+    <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50/70 p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-gray-400 shadow-sm">
-            <Icon name="arrow-up-tray" className="h-5 w-5" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm border border-gray-200">
+            <Icon name="photo" className="h-5 w-5" />
           </div>
           <div>
-            <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()}>
-              Choose Images
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Icon name="arrow-up-tray" className="mr-1.5 h-4 w-4" />
+              Choose Images from Computer
             </Button>
             <p className="mt-1.5 max-w-md text-xs leading-relaxed text-gray-500">
               {hint ??
-                'Select property photos from your PC. Local selection is preview/mock only — images are not uploaded to a server yet.'}
+                'Select property photos (.jpg, .png, .webp). Photos will be uploaded to Cloudinary CDN upon saving.'}
             </p>
           </div>
         </div>
       </div>
+
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/jpg"
         multiple
         className="sr-only"
-        data-testid="image-file-input"
-        aria-label="Choose images"
-        onChange={handleFiles}
+        onChange={handleFileSelect}
       />
-      {items.length > 0 && (
-        <div className="mt-4">
-          <p className="text-sm font-semibold text-gray-900">Selected images</p>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {items.length} {items.length === 1 ? 'image' : 'images'} ready for the current session
+
+      {totalCount > 0 && (
+        <div className="mt-3">
+          <p className="text-sm font-semibold text-gray-900">
+            Property Photos ({totalCount}/10)
           </p>
-          <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {items.map((item) => (
-              <li
-                key={item.key}
-                className="group flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm transition-shadow duration-150 hover:shadow-md"
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {/* 1. Existing Cloudinary Images */}
+            {existingImages?.map((url, idx) => (
+              <div
+                key={`existing-${url}-${idx}`}
+                className="group relative flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
                 <img
-                  src={item.objectUrl}
-                  alt={item.name ?? 'Selected image'}
-                  className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                  src={url}
+                  alt={`Property photo ${idx + 1}`}
+                  className="h-16 w-16 shrink-0 rounded-lg object-cover bg-gray-100"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
-                    {item.name ?? 'Local image'}
-                  </p>
+                  <span className="inline-block rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    Uploaded (Cloudinary)
+                  </span>
+                  <p className="truncate text-xs text-gray-500 mt-1">Photo #{idx + 1}</p>
                   <button
                     type="button"
-                    onClick={() => removeImage(item.key)}
-                    className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-600 transition-colors hover:text-red-700"
-                    aria-label={`Remove ${item.name ?? 'image'}`}
+                    onClick={() => removeExistingImage(idx)}
+                    className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700"
                   >
                     <Icon name="trash" className="h-3.5 w-3.5" />
                     Remove
                   </button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+
+            {/* 2. Newly Selected Local Files */}
+            {filePreviews.map((preview, idx) => (
+              <div
+                key={preview.key}
+                className="group relative flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50/40 p-2.5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <img
+                  src={preview.previewUrl}
+                  alt={preview.name}
+                  className="h-16 w-16 shrink-0 rounded-lg object-cover bg-gray-100"
+                />
+                <div className="min-w-0 flex-1">
+                  <span className="inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                    Ready to Upload ({preview.size})
+                  </span>
+                  <p className="truncate text-xs font-medium text-gray-800 mt-1">
+                    {preview.name}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => removeNewFile(idx)}
+                    className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700"
+                  >
+                    <Icon name="trash" className="h-3.5 w-3.5" />
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

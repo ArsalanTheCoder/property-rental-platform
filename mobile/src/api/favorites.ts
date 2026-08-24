@@ -34,7 +34,9 @@ function mapFavoriteProperty(raw: BackendFavorite["property"]): PropertySummary 
 // need for a separate lookup.
 export async function getFavorites(): Promise<PropertySummary[]> {
   const { favorites } = await apiRequest<{ favorites: BackendFavorite[] }>("/favorites");
-  return favorites.map((favorite) => mapFavoriteProperty(favorite.property));
+  return (favorites || [])
+    .filter((f) => f && f.property && f.property._id)
+    .map((favorite) => mapFavoriteProperty(favorite.property));
 }
 
 export async function addFavorite(propertyId: string): Promise<void> {

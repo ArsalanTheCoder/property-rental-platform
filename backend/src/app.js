@@ -15,9 +15,26 @@ const app = express();
 // Trust proxy for rate-limit and IP detection if deployed behind proxy/load balancer
 app.set("trust proxy", 1);
 
-// CORS configuration with credentials allowlist
+// Dynamic CORS configuration allowing localhost ports and local development origins
 const corsOptions = {
-  origin: config.cors.clientOrigin,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    const isLocalhost =
+      origin.startsWith("http://localhost:") ||
+      origin.startsWith("http://127.0.0.1:") ||
+      origin.startsWith("http://192.168.") ||
+      origin === "http://localhost:3000" ||
+      origin === "http://localhost:5173" ||
+      origin === "http://localhost:5174" ||
+      origin === "http://localhost:5175";
+
+    if (isLocalhost || origin === config.cors.clientOrigin) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],

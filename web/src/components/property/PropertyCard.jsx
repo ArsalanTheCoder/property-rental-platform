@@ -29,11 +29,7 @@ export const PropertyCard = ({ property }) => {
     toggleFavorite(propertyId);
   };
 
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(property.price);
+  const formattedPrice = `Rs. ${Number(property.price || 0).toLocaleString()}`;
 
   const displayLocation = typeof property.location === 'object'
     ? [property.location?.address, property.location?.city].filter(Boolean).join(', ')
@@ -63,9 +59,9 @@ export const PropertyCard = ({ property }) => {
           <Badge variant="brand" size="sm" className="shadow-md backdrop-blur-md">
             {property.propertyType}
           </Badge>
-          {property.furnished && (
+          {Boolean(property.furnished) && (
             <Badge variant="default" size="sm" className="shadow-md backdrop-blur-md bg-slate-900/80 text-white border-none">
-              {property.furnished}
+              Furnished
             </Badge>
           )}
         </div>

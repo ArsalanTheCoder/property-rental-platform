@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { colors, radius, spacing, typography } from "@/constants/theme";
+import { colors, radius, spacing, typography, FALLBACK_PROPERTY_IMAGE } from "@/constants/theme";
 import { formatPrice } from "@/utils/format";
 import { useFavorites } from "@/context/FavoritesContext";
 import { getPropertyDetails } from "@/api/properties";
@@ -58,13 +58,17 @@ export default function PropertyDetailsScreen() {
   }
 
   const saved = isFavorite(property.id);
+  const galleryImages =
+    property.images && property.images.length > 0
+      ? property.images
+      : [FALLBACK_PROPERTY_IMAGE];
 
   return (
     <Screen edges={["left", "right"]}>
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         <View style={styles.gallery}>
           <FlatList
-            data={property.images}
+            data={galleryImages}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -74,7 +78,7 @@ export default function PropertyDetailsScreen() {
               setActiveImageIndex(index);
             }}
             renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.galleryImage} />
+              <Image source={{ uri: item }} style={styles.galleryImage} resizeMode="cover" />
             )}
           />
 

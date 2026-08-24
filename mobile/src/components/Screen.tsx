@@ -4,7 +4,7 @@ import { SafeAreaView, Edge } from "react-native-safe-area-context";
 import { colors } from "@/constants/theme";
 
 interface ScreenProps {
-  children: ReactNode;
+  children?: ReactNode;
   edges?: Edge[];
   style?: ViewStyle;
   background?: string;

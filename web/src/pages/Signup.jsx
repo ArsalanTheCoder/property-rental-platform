@@ -35,7 +35,7 @@ export const Signup = () => {
 
     setLoading(true);
     try {
-      const res = await signup(name, email, phone, password);
+      const res = await signup(name, email, password);
       if (res.success) {
         addToast('Account created successfully!', 'success');
         navigate('/profile');
@@ -84,15 +84,6 @@ export const Signup = () => {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="user@example.com"
             required
-          />
-
-          <Input
-            label="Phone Number (Optional)"
-            type="tel"
-            icon={Phone}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+1 555-0199"
           />
 
           <Input

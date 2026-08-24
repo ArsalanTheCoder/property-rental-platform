@@ -1,15 +1,5 @@
 import apiClient from './api';
 
-const getStoredFavorites = () => {
-  const local = localStorage.getItem('haven_favorites');
-  if (local) {
-    try { return JSON.parse(local); } catch (e) {}
-  }
-  const defaultFavs = ["prop-101", "prop-103"];
-  localStorage.setItem('haven_favorites', JSON.stringify(defaultFavs));
-  return defaultFavs;
-};
-
 export const favoriteService = {
   // GET /api/v1/favorites (RFC-003-B)
   async getFavorites(params = {}) {
@@ -22,9 +12,11 @@ export const favoriteService = {
         pagination: payload?.pagination || null
       };
     } catch (error) {
-      await new Promise(res => setTimeout(res, 200));
-      const favs = getStoredFavorites();
-      return { success: true, favorites: favs };
+      return {
+        success: false,
+        favorites: [],
+        message: error.message || 'Failed to fetch favorites'
+      };
     }
   },
 
@@ -32,18 +24,16 @@ export const favoriteService = {
   async addFavorite(propertyId) {
     try {
       const response = await apiClient.post(`/favorites/${propertyId}`);
-      const payload = response.data?.data || response.data;
       return {
         success: true,
         isFavorited: true,
         message: response.data?.message || 'Property added to favorites'
       };
     } catch (error) {
-      await new Promise(res => setTimeout(res, 200));
-      let favs = getStoredFavorites();
-      if (!favs.includes(propertyId)) favs.push(propertyId);
-      localStorage.setItem('haven_favorites', JSON.stringify(favs));
-      return { success: true, isFavorited: true, message: 'Property added to favorites' };
+      throw {
+        message: error.message || 'Failed to add favorite',
+        status: error.status || 500
+      };
     }
   },
 
@@ -57,11 +47,10 @@ export const favoriteService = {
         message: response.data?.message || 'Property removed from favorites'
       };
     } catch (error) {
-      await new Promise(res => setTimeout(res, 200));
-      let favs = getStoredFavorites();
-      favs = favs.filter(id => id !== propertyId);
-      localStorage.setItem('haven_favorites', JSON.stringify(favs));
-      return { success: true, isFavorited: false, message: 'Property removed from favorites' };
+      throw {
+        message: error.message || 'Failed to remove favorite',
+        status: error.status || 500
+      };
     }
   },
 
@@ -75,8 +64,7 @@ export const favoriteService = {
         isFavorited: payload?.isFavorited ?? false
       };
     } catch (error) {
-      const favs = getStoredFavorites();
-      return { success: true, isFavorited: favs.includes(propertyId) };
+      return { success: false, isFavorited: false };
     }
   },
 

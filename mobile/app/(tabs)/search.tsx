@@ -55,8 +55,11 @@ export default function SearchScreen() {
       <FlatList
         data={results}
         keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
         renderItem={({ item }) => <PropertyCard property={item} />}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           !loading ? (
             <EmptyState
@@ -84,7 +87,7 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
   },
@@ -99,8 +102,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   listContent: {
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
     flexGrow: 1,
+  },
+  columnWrapper: {
+    gap: spacing.md,
+    justifyContent: "space-between",
   },
 });

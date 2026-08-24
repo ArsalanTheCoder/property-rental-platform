@@ -22,20 +22,40 @@ export const Favorites = () => {
     try {
       const favRes = await favoriteService.getFavorites();
       if (favRes.success && Array.isArray(favRes.favorites)) {
-        // If favorites array returned full property objects from backend
-        if (favRes.favorites.length > 0 && typeof favRes.favorites[0] === 'object' && favRes.favorites[0].title) {
-          setFavoriteProperties(favRes.favorites);
-        } else {
-          // If array of IDs returned, fetch details
-          const favIds = favRes.favorites.map(f => (typeof f === 'object' ? (f._id || f.propertyId || f.id) : f));
-          const allRes = await propertyService.getProperties();
+        // Backend returns items like { _id, property: { _id, title, ... }, createdAt }
+        const extractedProps = favRes.favorites
+          .map((f) => {
+            if (f.property && typeof f.property === 'object' && f.property.title) {
+              return f.property;
+            }
+            if (f.title) {
+              return f;
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        if (extractedProps.length > 0) {
+          setFavoriteProperties(extractedProps);
+        } else if (favRes.favorites.length > 0) {
+          // If only IDs were returned, match against public properties
+          const favIds = favRes.favorites.map((f) =>
+            typeof f === 'object' ? (f.property?._id || f.propertyId || f._id) : f
+          );
+          const allRes = await propertyService.getProperties({ limit: 50 });
           if (allRes.success && Array.isArray(allRes.properties)) {
             const matched = allRes.properties.filter((p) =>
               favIds.includes(p._id || p.propertyId || p.id)
             );
             setFavoriteProperties(matched);
+          } else {
+            setFavoriteProperties([]);
           }
+        } else {
+          setFavoriteProperties([]);
         }
+      } else {
+        setFavoriteProperties([]);
       }
     } catch (err) {
       setError(true);

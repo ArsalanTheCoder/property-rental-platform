@@ -39,10 +39,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, email, phone, password) => {
+  const signup = async (name, email, password) => {
     setLoading(true);
     try {
-      const res = await authService.signup(name, email, phone, password);
+      const res = await authService.signup(name, email, password);
       if (res.success && res.user) {
         setUser(res.user);
       }

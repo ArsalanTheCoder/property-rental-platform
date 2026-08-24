@@ -100,11 +100,7 @@ export const PropertyDetail = () => {
     }
   };
 
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(property.price);
+  const formattedPrice = `Rs. ${Number(property.price || 0).toLocaleString()}`;
 
   return (
     <div className="pt-28 pb-24 min-h-screen">

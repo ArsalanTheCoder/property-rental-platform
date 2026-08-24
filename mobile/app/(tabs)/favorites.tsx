@@ -11,18 +11,21 @@ export default function FavoritesScreen() {
 
   return (
     <Screen>
-      <Text style={styles.title}>Saved</Text>
+      <Text style={styles.title}>Saved Properties</Text>
 
       <FlatList
         data={favoriteProperties}
         keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
         renderItem={({ item }) => <PropertyCard property={item} />}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <EmptyState
             icon="heart"
             title="No saved properties yet"
-            message="Tap the heart icon on a listing to save it here."
+            message="Tap the heart icon on any listing to save it here."
           />
         }
       />
@@ -34,13 +37,17 @@ const styles = StyleSheet.create({
   title: {
     ...typography.h1,
     color: colors.textPrimary,
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
   },
   listContent: {
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
     flexGrow: 1,
+  },
+  columnWrapper: {
+    gap: spacing.md,
+    justifyContent: "space-between",
   },
 });
